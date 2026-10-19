@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/data_limit_service.dart';
 import '../models/device_model.dart';
+import 'qr_screen.dart';
+import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -11,13 +13,13 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  int _currentIndex = 0;
+
   @override
   void initState() {
     super.initState();
-    // অ্যাপ চালু হলেই ডাটা লোড হবে
     Future.microtask(() => context.read<DataLimitService>().init());
     
-    // ডেমো হিসেবে ২টি ডিভাইস অ্যাড করে দিচ্ছি (পরে নেটিভ স্ক্যানার এগুলো দিবে)
     Future.delayed(const Duration(seconds: 1), () {
       if (mounted) {
         context.read<DataLimitService>().addDevice('192.168.43.10');
@@ -26,19 +28,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  // নিচের নেভিগেশন বার অনুযায়ী স্ক্রিন পরিবর্তন
+  final List<Widget> _screens = [
+    const _DeviceListWidget(),
+    const QrScreen(),
+    const SettingsScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(child: _screens[_currentIndex]),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.devices), label: 'Devices'),
+          NavigationDestination(icon: Icon(Icons.qr_code), label: 'Connect'),
+          NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
+        ],
+      ),
+    );
+  }
+}
+
+// ডিভাইস লিস্ট আলাদা উইজেটে রাখা হলো
+class _DeviceListWidget extends StatelessWidget {
+  const _DeviceListWidget();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Hospo Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code),
-            onPressed: () {
-              // পরবর্তী ধাপে QR স্ক্রিন আসবে
-            },
-          )
-        ],
+        centerTitle: true,
       ),
       body: Consumer<DataLimitService>(
         builder: (context, service, child) {
@@ -50,7 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             itemCount: service.devices.length,
             itemBuilder: (context, index) {
               final device = service.devices[index];
-              return _buildDeviceCard(device, service);
+              return _buildDeviceCard(context, device, service);
             },
           );
         },
@@ -58,7 +85,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildDeviceCard(ConnectedDevice device, DataLimitService service) {
+  Widget _buildDeviceCard(BuildContext context, ConnectedDevice device, DataLimitService service) {
     double progress = device.usedMB / device.limitMB;
     if (progress > 1.0) progress = 1.0;
     
@@ -81,20 +108,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit, size: 20),
-                  onPressed: () => _showRenameDialog(device, service),
+                  onPressed: () => _showRenameDialog(context, device, service),
                 )
               ],
             ),
-            const SizedBox(height: 8),
-            Text('IP: ${device.id}', style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 4),
+            Text('IP: ${device.id}', style: TextStyle(color: Colors.grey[500])),
             const SizedBox(height: 16),
             
-            // প্রোগ্রেস বার
             LinearProgressIndicator(
               value: progress,
               minHeight: 10,
-              backgroundColor: Colors.grey[300],
-              color: isLimitReached ? Colors.red : Colors.green,
+              backgroundColor: Colors.grey[800],
+              color: isLimitReached ? Colors.red : Colors.greenAccent,
               borderRadius: BorderRadius.circular(10),
             ),
             const SizedBox(height: 8),
@@ -106,7 +132,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   isLimitReached ? 'Blocked' : 'Active',
                   style: TextStyle(
-                    color: isLimitReached ? Colors.red : Colors.green,
+                    color: isLimitReached ? Colors.red : Colors.greenAccent,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -114,25 +140,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const Divider(height: 24),
             
-            // ডিভাইস ব্লক বা রিমুভ বাটন
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton.icon(
-                  onPressed: () => _showSetLimitDialog(device, service),
+                  onPressed: () => _showSetLimitDialog(context, device, service),
                   icon: const Icon(Icons.tune),
                   label: const Text('Set Limit'),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () {
-                    // এখানে MAC ব্লক করার লজিক আসবে
+                    // MAC ব্লক লজিক
                   },
                   icon: const Icon(Icons.block),
                   label: const Text('Block'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[50],
-                    foregroundColor: Colors.red,
+                    backgroundColor: Colors.red.withOpacity(0.2),
+                    foregroundColor: Colors.redAccent,
+                    elevation: 0,
                   ),
                 ),
               ],
@@ -143,18 +169,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _showRenameDialog(ConnectedDevice device, DataLimitService service) {
+  void _showRenameDialog(BuildContext context, ConnectedDevice device, DataLimitService service) {
     TextEditingController controller = TextEditingController(text: device.name);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Rename Device'),
-        content: TextField(controller: controller),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'Enter new name'),
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
-              service.renameDevice(device.id, controller.text);
+              if (controller.text.isNotEmpty) {
+                service.renameDevice(device.id, controller.text);
+              }
               Navigator.pop(context);
             },
             child: const Text('Save'),
@@ -164,12 +195,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _showSetLimitDialog(ConnectedDevice device, DataLimitService service) {
+  void _showSetLimitDialog(BuildContext context, ConnectedDevice device, DataLimitService service) {
     TextEditingController controller = TextEditingController(text: device.limitMB.toStringAsFixed(0));
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Set Data Limit (MB)'),
+        title: const Text('Set Data Limit'),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
