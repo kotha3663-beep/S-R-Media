@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/question_model.dart';
@@ -32,7 +33,7 @@ class QuestionRepository {
             explanation TEXT
           )
         ''');
-        _insertInitialQuestions(db);
+        await _insertInitialQuestions(db);
       },
     );
   }
@@ -58,6 +59,26 @@ class QuestionRepository {
         'options': 'Water Lily|||Rose|||Lotus|||Hibiscus',
         'correctOptionIndex': 0,
         'explanation': 'The national flower of Bangladesh is the Water Lily. It was declared as the national flower after independence in 1971.',
+      },
+      {
+        'groupId': 1,
+        'languageCode': 'bn',
+        'category': 'বাংলাদেশ বিষয়াবলি',
+        'difficulty': 'সহজ',
+        'questionText': 'বাংলাদেশের স্বাধীনতা দিবস কোনটি?',
+        'options': '২৬ মার্চ|||১৬ ডিসেম্বর|||২১ ফেব্রুয়ারি|||১ জানুয়ারি',
+        'correctOptionIndex': 0,
+        'explanation': 'বাংলাদেশের স্বাধীনতা দিবস ২৬ মার্চ।',
+      },
+      {
+        'groupId': 1,
+        'languageCode': 'en',
+        'category': 'Bangladesh Affairs',
+        'difficulty': 'Easy',
+        'questionText': 'When is the Independence Day of Bangladesh?',
+        'options': '26 March|||16 December|||21 February|||1 January',
+        'correctOptionIndex': 0,
+        'explanation': 'The Independence Day of Bangladesh is 26 March.',
       },
       {
         'groupId': 2,
@@ -99,6 +120,106 @@ class QuestionRepository {
         'correctOptionIndex': 0,
         'explanation': 'The Liberation War of Bangladesh took place in 1971.',
       },
+      {
+        'groupId': 4,
+        'languageCode': 'bn',
+        'category': 'ভূগোল',
+        'difficulty': 'মাঝারি',
+        'questionText': 'বাংলাদেশের মোট আয়তন কত?',
+        'options': '১,৪৭,৫৭০ বর্গকিমি|||১,৪৫,০০০ বর্গকিমি|||১,৫০,০০০ বর্গকিমি|||১,৪৮,০০০ বর্গকিমি',
+        'correctOptionIndex': 0,
+        'explanation': 'বাংলাদেশের মোট আয়তন ১,৪৭,৫৭০ বর্গকিলোমিটার।',
+      },
+      {
+        'groupId': 4,
+        'languageCode': 'en',
+        'category': 'Geography',
+        'difficulty': 'Medium',
+        'questionText': 'What is the total area of Bangladesh?',
+        'options': '147,570 sq km|||145,000 sq km|||150,000 sq km|||148,000 sq km',
+        'correctOptionIndex': 0,
+        'explanation': 'The total area of Bangladesh is 147,570 square kilometers.',
+      },
+      {
+        'groupId': 5,
+        'languageCode': 'bn',
+        'category': 'খেলাধুলা',
+        'difficulty': 'কঠিন',
+        'questionText': 'বাংলাদেশ ক্রিকেট দল প্রথম টেস্ট ম্যাচ জয়লাভ করে কোন সালে?',
+        'options': '২০০৫|||২০০০|||২০০৮|||২০১০',
+        'correctOptionIndex': 0,
+        'explanation': 'বাংলাদেশ ক্রিকেট দল ২০০৫ সালে জিম্বাবুয়ের বিপক্ষে তাদের প্রথম টেস্ট ম্যাচ জয়লাভ করে।',
+      },
+      {
+        'groupId': 5,
+        'languageCode': 'en',
+        'category': 'Sports',
+        'difficulty': 'Hard',
+        'questionText': 'In which year did the Bangladesh cricket team win their first Test match?',
+        'options': '2005|||2000|||2008|||2010',
+        'correctOptionIndex': 0,
+        'explanation': 'The Bangladesh cricket team won their first Test match against Zimbabwe in 2005.',
+      },
+      {
+        'groupId': 6,
+        'languageCode': 'bn',
+        'category': 'সাহিত্য ও সংস্কৃতি',
+        'difficulty': 'মাঝারি',
+        'questionText': 'রবীন্দ্রনাথ ঠাকুর কোন সালে নোবেল পুরস্কার লাভ করেন?',
+        'options': '১৯১৩|||১৯১০|||১৯২০|||১৯১৫',
+        'correctOptionIndex': 0,
+        'explanation': 'রবীন্দ্রনাথ ঠাকুর ১৯১৩ সালে সাহিত্যে নোবেল পুরস্কার লাভ করেন।',
+      },
+      {
+        'groupId': 6,
+        'languageCode': 'en',
+        'category': 'Literature & Culture',
+        'difficulty': 'Medium',
+        'questionText': 'In which year did Rabindranath Tagore win the Nobel Prize?',
+        'options': '1913|||1910|||1920|||1915',
+        'correctOptionIndex': 0,
+        'explanation': 'Rabindranath Tagore won the Nobel Prize in Literature in 1913.',
+      },
+      {
+        'groupId': 7,
+        'languageCode': 'bn',
+        'category': 'কম্পিউটার ও ডিজিটাল জ্ঞান',
+        'difficulty': 'সহজ',
+        'questionText': 'কম্পিউটারের জনক কে?',
+        'options': 'চার্লস ব্যাবেজ|||অ্যালান টুরিং|||বিল গেটস|||স্টিভ জবস',
+        'correctOptionIndex': 0,
+        'explanation': 'চার্লস ব্যাবেজকে কম্পিউটারের জনক বলা হয়।',
+      },
+      {
+        'groupId': 7,
+        'languageCode': 'en',
+        'category': 'Computer & Digital Knowledge',
+        'difficulty': 'Easy',
+        'questionText': 'Who is the father of the computer?',
+        'options': 'Charles Babbage|||Alan Turing|||Bill Gates|||Steve Jobs',
+        'correctOptionIndex': 0,
+        'explanation': 'Charles Babbage is known as the father of the computer.',
+      },
+      {
+        'groupId': 8,
+        'languageCode': 'bn',
+        'category': 'স্বাস্থ্য ও দৈনন্দিন বিজ্ঞান',
+        'difficulty': 'সহজ',
+        'questionText': 'প্রতিদিন কমপক্ষে কত গ্লাস পানি পান করা উচিত?',
+        'options': '৮ গ্লাস|||৪ গ্লাস|||৬ গ্লাস|||১০ গ্লাস',
+        'correctOptionIndex': 0,
+        'explanation': 'প্রতিদিন কমপক্ষে ৮ গ্লাস পানি পান করা উচিত।',
+      },
+      {
+        'groupId': 8,
+        'languageCode': 'en',
+        'category': 'Health & Daily Science',
+        'difficulty': 'Easy',
+        'questionText': 'How many glasses of water should you drink daily at least?',
+        'options': '8 glasses|||4 glasses|||6 glasses|||10 glasses',
+        'correctOptionIndex': 0,
+        'explanation': 'You should drink at least 8 glasses of water every day.',
+      },
     ];
 
     for (var q in questions) {
@@ -115,19 +236,20 @@ class QuestionRepository {
         'quiz_questions',
         where: 'languageCode = ? AND category = ?',
         whereArgs: [langCode, category],
-        limit: limit,
       );
     } else {
       maps = await db.query(
         'quiz_questions',
         where: 'languageCode = ?',
         whereArgs: [langCode],
-        limit: limit,
       );
     }
 
-    return List.generate(maps.length, (i) {
-      return QuestionModel.fromMap(maps[i]);
+    maps.shuffle(Random());
+    final selectedMaps = maps.take(limit).toList();
+
+    return List.generate(selectedMaps.length, (i) {
+      return QuestionModel.fromMap(selectedMaps[i]);
     });
   }
 
