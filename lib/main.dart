@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_colors.dart';
-import 'features/dashboard/dashboard_screen.dart';
+import 'features/home/home_screen.dart';
 
 void main() {
   runApp(const MyWorkApp());
@@ -16,14 +16,14 @@ class MyWorkApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
-        primaryColor: AppColors.primaryGreen,
-        // বাংলা ফন্টের জন্য (পরবর্তীতে গুগল ফন্টস বা লোকাল ফন্ট যুক্ত করা যাবে)
-        fontFamily: 'NotoSansBengali', 
+        primaryColor: AppColors.primary,
+        fontFamily: 'NotoSansBengali', // বাংলা ফন্ট সাপোর্ট
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primaryGreen,
-          primary: AppColors.primaryGreen,
-          error: AppColors.expenseRed,
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          secondary: AppColors.secondary,
           background: AppColors.background,
+          error: AppColors.error,
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: AppColors.background,
@@ -35,8 +35,16 @@ class MyWorkApp extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        cardTheme: CardTheme(
+          color: AppColors.cardBackground,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: AppColors.divider, width: 1),
+          ),
+        ),
       ),
-      home: const DashboardScreen(),
+      home: const HomeScreen(),
     );
   }
 }
