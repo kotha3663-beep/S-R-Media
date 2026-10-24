@@ -3,8 +3,10 @@ import '../../../core/theme/app_colors.dart';
 import '../models/quiz_result_model.dart';
 import '../data/quiz_repository.dart';
 import 'quiz_history_screen.dart';
+import 'wrong_answers_screen.dart';
 
 class QuizResultScreen extends StatefulWidget {
+  final int resultId;
   final String category;
   final int totalQuestions;
   final int correctAnswers;
@@ -18,6 +20,7 @@ class QuizResultScreen extends StatefulWidget {
 
   const QuizResultScreen({
     super.key,
+    required this.resultId,
     required this.category,
     required this.totalQuestions,
     required this.correctAnswers,
@@ -35,29 +38,6 @@ class QuizResultScreen extends StatefulWidget {
 }
 
 class _QuizResultScreenState extends State<QuizResultScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _saveResult();
-  }
-
-  Future<void> _saveResult() async {
-    final result = QuizResultModel(
-      category: widget.category,
-      totalQuestions: widget.totalQuestions,
-      correctAnswers: widget.correctAnswers,
-      wrongAnswers: widget.wrongAnswers,
-      accuracyPercent: widget.accuracyPercent,
-      totalScore: widget.totalScore,
-      maxPossibleScore: widget.maxPossibleScore,
-      averageTimeNs: widget.averageTimeNs,
-      fastestCorrectNs: widget.fastestCorrectNs,
-      grade: widget.grade,
-      createdAt: DateTime.now(),
-    );
-    await QuizRepository().saveQuizResult(result);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,6 +99,26 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
               ],
             ),
             const SizedBox(height: 32),
+            if (widget.wrongAnswers > 0)
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context, 
+                      MaterialPageRoute(builder: (_) => WrongAnswersScreen(quizResultId: widget.resultId))
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('ভুল উত্তরগুলো দেখুন', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               height: 50,
