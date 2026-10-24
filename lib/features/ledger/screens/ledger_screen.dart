@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/services/preferences_service.dart';
+import '../../../core/services/language_service.dart';
 import '../models/transaction_model.dart';
 import '../data/ledger_repository.dart';
 import 'add_transaction_screen.dart';
+import 'monthly_report_screen.dart';
 
 class LedgerScreen extends StatefulWidget {
   const LedgerScreen({super.key});
@@ -29,7 +30,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final lang = await PreferencesService.getLanguage();
+    final lang = await LanguageService().currentLocale.languageCode;
     final data = await _repository.getAllTransactions();
     
     double income = 0.0;
@@ -62,6 +63,17 @@ class _LedgerScreenState extends State<LedgerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isBn ? 'হিসাবের খাতা' : 'Ledger'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.pie_chart_outline),
+            onPressed: () {
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (_) => MonthlyReportScreen(transactions: _transactions, lang: _lang))
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
