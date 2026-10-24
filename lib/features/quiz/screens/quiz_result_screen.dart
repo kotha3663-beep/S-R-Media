@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/quiz_result_model.dart';
 import '../data/quiz_repository.dart';
+import 'quiz_history_screen.dart';
 
 class QuizResultScreen extends StatefulWidget {
   final String category;
@@ -60,7 +61,17 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ফলাফল')),
+      appBar: AppBar(
+        title: const Text('ফলাফল'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizHistoryScreen()));
+            },
+          )
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
