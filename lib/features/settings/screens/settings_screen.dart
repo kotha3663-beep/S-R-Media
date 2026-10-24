@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/language_service.dart';
+import 'about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -47,11 +48,14 @@ class SettingsScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 12),
-              const Card(
+              Card(
                 child: ListTile(
-                  leading: Icon(Icons.info_outline, color: AppColors.secondary),
-                  title: Text('অ্যাপ সম্পর্কে / About App'),
-                  subtitle: Text('Version 1.0.0'),
+                  leading: const Icon(Icons.info_outline, color: AppColors.secondary),
+                  title: const Text('অ্যাপ সম্পর্কে / About App'),
+                  subtitle: const Text('Version 1.0.0'),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()));
+                  },
                 ),
               ),
             ],
