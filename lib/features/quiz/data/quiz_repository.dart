@@ -13,7 +13,7 @@ class QuizRepository {
 
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'mywork_quiz.db');
+    final path = join(dbPath, 'mywork_quiz_results.db');
 
     return await openDatabase(
       path,
