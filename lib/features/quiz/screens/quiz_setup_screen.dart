@@ -27,11 +27,13 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
   Future<void> _loadCategories() async {
     final lang = await PreferencesService.getLanguage();
     final cats = await _repo.getCategories(lang);
-    setState(() {
-      _categories = cats;
-      if (cats.isNotEmpty) _selectedCategory = cats.first;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _categories = cats;
+        if (cats.isNotEmpty) _selectedCategory = cats.first;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
