@@ -1,56 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../ledger/ledger_screen.dart';
-import '../games/games_screen.dart';
-import '../health/health_screen.dart';
-import '../knowledge/knowledge_screen.dart';
+import '../../core/navigation/main_navigation_screen.dart';
+import '../settings/screens/settings_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = [
-    const _DashboardTab(),
-    const LedgerScreen(),
-    const GamesScreen(),
-    const HealthScreen(),
-    const KnowledgeScreen(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.secondary,
-        unselectedItemColor: AppColors.textSecondary,
-        showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'হোম'),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'হিসাব'),
-          BottomNavigationBarItem(icon: Icon(Icons.sports_esports), label: 'গেমস'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'স্বাস্থ্য'),
-          BottomNavigationBarItem(icon: Icon(Icons.lightbulb), label: 'জ্ঞান'),
-        ],
-      ),
-    );
-  }
-}
-
-class _DashboardTab extends StatelessWidget {
-  const _DashboardTab();
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +15,15 @@ class _DashboardTab extends StatelessWidget {
       appBar: AppBar(
         title: const Text('MyWork', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
         actions: [
-          IconButton(icon: const Icon(Icons.language), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.settings_outlined), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
           const SizedBox(width: 8),
         ],
       ),
