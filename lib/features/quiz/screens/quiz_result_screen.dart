@@ -101,6 +101,12 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                 Expanded(child: _buildStatCard('গড় সময়', '${(widget.averageTimeNs / 1000000000).toStringAsFixed(3)} সে', AppColors.warning)),
               ],
             ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(child: _buildStatCard('দ্রুততম সঠিক', '${(widget.fastestCorrectNs / 1000000000).toStringAsFixed(3)} সে', AppColors.knowledgeAccent)),
+              ],
+            ),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
