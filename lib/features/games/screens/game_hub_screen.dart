@@ -3,6 +3,14 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/services/language_service.dart';
 import 'water_sort_game.dart';
 import 'game_2048.dart';
+import 'dot_connect_game.dart';
+import 'laser_mirror_game.dart';
+import 'text_survival_game.dart';
+import 'dot_survivor_game.dart';
+import 'tower_defense_game.dart';
+import 'runner_game.dart';
+import 'double_runner_game.dart';
+import 'stack_jump_game.dart';
 
 class GameHubScreen extends StatelessWidget {
   const GameHubScreen({super.key});
@@ -46,10 +54,22 @@ class GameHubScreen extends StatelessWidget {
                 final name = isBn ? game['name_bn'] : game['name_en'];
                 return InkWell(
                   onTap: () {
-                    if (game['route'] == '2048') {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const Game2048()));
-                    } else if (game['route'] == 'water_sort') {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const WaterSortGame()));
+                    Widget? screen;
+                    switch (game['route']) {
+                      case '2048': screen = const Game2048(); break;
+                      case 'water_sort': screen = const WaterSortGame(); break;
+                      case 'dot_connect': screen = const DotConnectGame(); break;
+                      case 'laser': screen = const LaserMirrorGame(); break;
+                      case 'survival': screen = const TextSurvivalGame(); break;
+                      case 'dot_survivor': screen = const DotSurvivorGame(); break;
+                      case 'tower_defense': screen = const TowerDefenseGame(); break;
+                      case 'runner': screen = const RunnerGame(); break;
+                      case 'double_runner': screen = const DoubleRunnerGame(); break;
+                      case 'stack_jump': screen = const StackJumpGame(); break;
+                    }
+
+                    if (screen != null) {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => screen!));
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(isBn ? '$name শীঘ্রই আসছে!' : '$name coming soon!')),
