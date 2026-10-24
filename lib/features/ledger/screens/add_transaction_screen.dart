@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/preferences_service.dart';
 import '../models/transaction_model.dart';
 import '../data/ledger_repository.dart';
 
@@ -21,19 +22,38 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   String _type = 'income';
   String _category = 'বেতন';
   DateTime _date = DateTime.now();
+  String _lang = 'bn';
 
-  final List<String> _incomeCategories = ['বেতন', 'ব্যবসা', 'বিনিয়োগ', 'উপহার', 'অন্যান্য'];
-  final List<String> _expenseCategories = ['খাবার', 'যাতায়াত', 'কেনাকাটা', 'বিল', 'চিকিৎসা', 'শিক্ষা', 'অন্যান্য'];
+  final List<String> _incomeCategoriesBn = ['বেতন', 'ব্যবসা', 'বিনিয়োগ', 'উপহার', 'অন্যান্য'];
+  final List<String> _expenseCategoriesBn = ['খাবার', 'যাতায়াত', 'কেনাকাটা', 'বিল', 'চিকিৎসা', 'শিক্ষা', 'অন্যান্য'];
+
+  final List<String> _incomeCategoriesEn = ['Salary', 'Business', 'Investment', 'Gift', 'Others'];
+  final List<String> _expenseCategoriesEn = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Education', 'Others'];
 
   @override
   void initState() {
     super.initState();
+    _loadLanguage();
     if (widget.transaction != null) {
       _type = widget.transaction!.type;
       _amountController.text = widget.transaction!.amount.toString();
       _category = widget.transaction!.category;
       _date = widget.transaction!.date;
       _noteController.text = widget.transaction!.note;
+    }
+  }
+
+  Future<void> _loadLanguage() async {
+    final lang = await PreferencesService.getLanguage();
+    if (mounted) {
+      setState(() {
+        _lang = lang;
+        if (widget.transaction == null) {
+          _category = _type == 'income' 
+              ? (_lang == 'bn' ? _incomeCategoriesBn[0] : _incomeCategoriesEn[0])
+              : (_lang == 'bn' ? _expenseCategoriesBn[0] : _expenseCategoriesEn[0]);
+        }
+      });
     }
   }
 
@@ -83,11 +103,20 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = _type == 'income' ? _incomeCategories : _expenseCategories;
+    final isBn = _lang == 'bn';
+    final incomeCats = isBn ? _incomeCategoriesBn : _incomeCategoriesEn;
+    final expenseCats = isBn ? _expenseCategoriesBn : _expenseCategoriesEn;
+    final categories = _type == 'income' ? incomeCats : expenseCats;
+
+    if (!categories.contains(_category)) {
+      _category = categories[0];
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.transaction == null ? 'নতুন লেনদেন' : 'লেনদেন সম্পাদনা'),
+        title: Text(widget.transaction == null 
+            ? (isBn ? 'নতুন লেনদেন' : 'New Transaction') 
+            : (isBn ? 'লেনদেন সম্পাদনা' : 'Edit Transaction')),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -100,7 +129,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _type = 'income'),
+                      onTap: () => setState(() {
+                        _type = 'income';
+                        _category = incomeCats[0];
+                      }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
@@ -110,7 +142,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            'আয়',
+                            isBn ? 'আয়' : 'Income',
                             style: TextStyle(
                               color: _type == 'income' ? Colors.white : AppColors.ledgerAccent,
                               fontWeight: FontWeight.bold,
@@ -126,7 +158,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     child: GestureDetector(
                       onTap: () => setState(() {
                         _type = 'expense';
-                        _category = _expenseCategories[0];
+                        _category = expenseCats[0];
                       }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -137,7 +169,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            'ব্যয়',
+                            isBn ? 'ব্যয়' : 'Expense',
                             style: TextStyle(
                               color: _type == 'expense' ? Colors.white : AppColors.healthAccent,
                               fontWeight: FontWeight.bold,
@@ -154,17 +186,17 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               TextFormField(
                 controller: _amountController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'টাকার পরিমাণ',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: isBn ? 'টাকার পরিমাণ' : 'Amount',
+                  border: const OutlineInputBorder(),
                   prefixText: '৳ ',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'পরিমাণ দিন';
+                    return isBn ? 'পরিমাণ দিন' : 'Please enter amount';
                   }
                   if (double.tryParse(value) == null) {
-                    return 'সঠিক সংখ্যা দিন';
+                    return isBn ? 'সঠিক সংখ্যা দিন' : 'Enter a valid number';
                   }
                   return null;
                 },
@@ -172,9 +204,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _category,
-                decoration: const InputDecoration(
-                  labelText: 'ক্যাটাগরি',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: isBn ? 'ক্যাটাগরি' : 'Category',
+                  border: const OutlineInputBorder(),
                 ),
                 items: categories.map((String category) {
                   return DropdownMenuItem(
@@ -192,9 +224,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               InkWell(
                 onTap: () => _selectDate(context),
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'তারিখ',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: isBn ? 'তারিখ' : 'Date',
+                    border: const OutlineInputBorder(),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -208,9 +240,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _noteController,
-                decoration: const InputDecoration(
-                  labelText: 'বিবরণ বা নোট',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: isBn ? 'বিবরণ বা নোট' : 'Note (Optional)',
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),
@@ -225,7 +257,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('সংরক্ষণ করুন', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    isBn ? 'সংরক্ষণ করুন' : 'Save', 
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                  ),
                 ),
               ),
             ],
