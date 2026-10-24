@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/question_model.dart';
+import '../data/quiz_repository.dart';
+import '../data/quiz_answer_repository.dart';
 import 'quiz_result_screen.dart';
 
 class QuizPlayScreen extends StatefulWidget {
@@ -28,6 +30,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
   
   int? _selectedOption;
   bool _isAnswered = false;
+  bool _isSaving = false;
 
   Timer? _timer;
   int _timeLeft = 20;
@@ -62,12 +65,15 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
 
   void _handleTimeout() {
     _stopwatch.stop();
+    final timeTakenNs = _maxTime * 1000000000;
+    _totalTimeNs += timeTakenNs;
+    
     setState(() {
       _isAnswered = true;
       _selectedOption = -1;
       _wrongCount++;
-      _totalTimeNs += _maxTime * 1000000000;
     });
+    _saveAnswer(-1, false, timeTakenNs, 0);
   }
 
   void _handleOptionSelect(int index) {
@@ -81,6 +87,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
 
     final question = widget.questions[_currentIndex];
     final isCorrect = index == question.correctOptionIndex;
+    double pointsEarned = 0;
 
     setState(() {
       _selectedOption = index;
@@ -94,11 +101,26 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
         
         final remainingRatio = (_maxTime - (timeTakenNs / 1000000000)) / _maxTime;
         final speedPoints = 30 * (remainingRatio > 0 ? remainingRatio : 0);
-        _totalScore += 70 + speedPoints;
+        pointsEarned = 70 + speedPoints;
+        _totalScore += pointsEarned;
       } else {
         _wrongCount++;
       }
     });
+
+    _saveAnswer(index, isCorrect, timeTakenNs, pointsEarned);
+  }
+
+  Future<void> _saveAnswer(int selected, bool isCorrect, int timeNs, double points) async {
+    if (widget.questions[_currentIndex].id == null) return;
+    await QuizAnswerRepository().saveAnswer(
+      quizResultId: 0, // Temporary, will update on finish
+      questionGroupId: widget.questions[_currentIndex].id!,
+      selectedOption: selected,
+      isCorrect: isCorrect,
+      timeTakenNs: timeNs,
+      pointsEarned: points,
+    );
   }
 
   void _nextQuestion() {
@@ -112,7 +134,10 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
     }
   }
 
-  void _finishQuiz() {
+  Future<void> _finishQuiz() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+
     final totalQ = widget.questions.length;
     final accuracy = (_correctCount / totalQ) * 100;
     final maxScore = totalQ * 100.0;
@@ -126,23 +151,39 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
     else if (scorePercent >= 60) grade = 'C';
     else if (scorePercent >= 50) grade = 'D';
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => QuizResultScreen(
-          category: widget.category,
-          totalQuestions: totalQ,
-          correctAnswers: _correctCount,
-          wrongAnswers: _wrongCount,
-          accuracyPercent: accuracy,
-          totalScore: _totalScore,
-          maxPossibleScore: maxScore,
-          averageTimeNs: avgTimeNs,
-          fastestCorrectNs: _fastestCorrectNs == 9999999999999 ? 0 : _fastestCorrectNs,
-          grade: grade,
-        ),
-      ),
+    final resultId = await QuizRepository().saveQuizResultAndGetId(
+      category: widget.category,
+      totalQuestions: totalQ,
+      correctAnswers: _correctCount,
+      wrongAnswers: _wrongCount,
+      accuracyPercent: accuracy,
+      totalScore: _totalScore,
+      maxPossibleScore: maxScore,
+      averageTimeNs: avgTimeNs,
+      fastestCorrectNs: _fastestCorrectNs == 9999999999999 ? 0 : _fastestCorrectNs,
+      grade: grade,
     );
+
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuizResultScreen(
+            resultId: resultId,
+            category: widget.category,
+            totalQuestions: totalQ,
+            correctAnswers: _correctCount,
+            wrongAnswers: _wrongCount,
+            accuracyPercent: accuracy,
+            totalScore: _totalScore,
+            maxPossibleScore: maxScore,
+            averageTimeNs: avgTimeNs,
+            fastestCorrectNs: _fastestCorrectNs == 9999999999999 ? 0 : _fastestCorrectNs,
+            grade: grade,
+          ),
+        ),
+      );
+    }
   }
 
   @override
