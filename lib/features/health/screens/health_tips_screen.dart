@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/preferences_service.dart';
 import '../models/health_tip_model.dart';
 import '../data/health_repository.dart';
 
@@ -14,6 +15,7 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
   final _repository = HealthRepository();
   List<HealthTipModel> _tips = [];
   bool _isLoading = true;
+  String _lang = 'bn';
 
   @override
   void initState() {
@@ -23,18 +25,24 @@ class _HealthTipsScreenState extends State<HealthTipsScreen> {
 
   Future<void> _loadTips() async {
     setState(() => _isLoading = true);
+    final lang = await PreferencesService.getLanguage();
     final tips = await _repository.getAllTips();
-    setState(() {
-      _tips = tips;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _lang = lang;
+        _tips = tips;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isBn = _lang == 'bn';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('স্বাস্থ্য টিপস'),
+        title: Text(isBn ? 'স্বাস্থ্য টিপস' : 'Health Tips'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
