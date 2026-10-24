@@ -44,6 +44,34 @@ class QuizRepository {
     return await db.insert('quiz_results', result.toMap());
   }
 
+  Future<int> saveQuizResultAndGetId({
+    required String category,
+    required int totalQuestions,
+    required int correctAnswers,
+    required int wrongAnswers,
+    required double accuracyPercent,
+    required double totalScore,
+    required double maxPossibleScore,
+    required int averageTimeNs,
+    required int fastestCorrectNs,
+    required String grade,
+  }) async {
+    final db = await database;
+    return await db.insert('quiz_results', {
+      'category': category,
+      'totalQuestions': totalQuestions,
+      'correctAnswers': correctAnswers,
+      'wrongAnswers': wrongAnswers,
+      'accuracyPercent': accuracyPercent,
+      'totalScore': totalScore,
+      'maxPossibleScore': maxPossibleScore,
+      'averageTimeNs': averageTimeNs,
+      'fastestCorrectNs': fastestCorrectNs,
+      'grade': grade,
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+  }
+
   Future<List<QuizResultModel>> getAllResults() async {
     final db = await database;
     final maps = await db.query('quiz_results', orderBy: 'createdAt DESC');
