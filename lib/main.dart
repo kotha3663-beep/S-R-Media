@@ -17,7 +17,7 @@ class MyWorkApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
         primaryColor: AppColors.primary,
-        fontFamily: 'NotoSansBengali', // বাংলা ফন্ট সাপোর্ট
+        fontFamily: 'NotoSansBengali',
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           primary: AppColors.primary,
@@ -41,6 +41,27 @@ class MyWorkApp extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: const BorderSide(color: AppColors.divider, width: 1),
+          ),
+        ),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: AppColors.cardBackground,
+          elevation: 8,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: AppColors.cardBackground,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.divider),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.divider),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.secondary, width: 2),
           ),
         ),
       ),
