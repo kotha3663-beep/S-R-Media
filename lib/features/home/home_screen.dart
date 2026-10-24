@@ -1,12 +1,59 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../ledger/ledger_screen.dart';
+import '../games/games_screen.dart';
+import '../health/health_screen.dart';
+import '../knowledge/knowledge_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = [
+    const _DashboardTab(),
+    const LedgerScreen(),
+    const GamesScreen(),
+    const HealthScreen(),
+    const KnowledgeScreen(),
+  ];
+
+  @override
   Widget build(BuildContext context) {
-    // আজকের তারিখ বের করার একটি সাধারণ লজিক (পরবর্তীতে intl প্যাকেজ দিয়ে ফরম্যাট করা যাবে)
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.secondary,
+        unselectedItemColor: AppColors.textSecondary,
+        showUnselectedLabels: true,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'হোম'),
+          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: 'হিসাব'),
+          BottomNavigationBarItem(icon: Icon(Icons.sports_esports), label: 'গেমস'),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'স্বাস্থ্য'),
+          BottomNavigationBarItem(icon: Icon(Icons.lightbulb), label: 'জ্ঞান'),
+        ],
+      ),
+    );
+  }
+}
+
+class _DashboardTab extends StatelessWidget {
+  const _DashboardTab();
+
+  @override
+  Widget build(BuildContext context) {
     final now = DateTime.now();
     final dateString = "${now.day} ${_getMonthName(now.month)}, ${now.year}";
 
@@ -14,14 +61,8 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('MyWork', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.language), // ভাষা পরিবর্তনের আইকন (বাংলা/ইংরেজি)
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.language), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.settings_outlined), onPressed: () {}),
           const SizedBox(width: 8),
         ],
       ),
@@ -30,7 +71,6 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ১. শুভেচ্ছা ও তারিখ
             const Text(
               'শুভ দিন!',
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
@@ -41,8 +81,6 @@ class HomeScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 16, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 24),
-
-            // ২. চারটি প্রধান বিভাগ (Grid)
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
@@ -78,8 +116,6 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 28),
-
-            // ৩. দৈনিক তথ্য (Knowledge Base)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -124,8 +160,6 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 28),
-
-            // ৪. দৈনিক কুইজ চ্যালেঞ্জ
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -174,7 +208,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // ক্যাটাগরি কার্ড ডিজাইন উইজেট
   Widget _buildCategoryCard({
     required String title,
     required IconData icon,
@@ -223,7 +256,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // মাসের নাম বের করার হেল্পার
   String _getMonthName(int month) {
     const months = [
       'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
