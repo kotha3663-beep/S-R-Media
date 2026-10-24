@@ -1,27 +1,52 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/preferences_service.dart';
 
-class GameHubScreen extends StatelessWidget {
+class GameHubScreen extends StatefulWidget {
   const GameHubScreen({super.key});
 
+  @override
+  State<GameHubScreen> createState() => _GameHubScreenState();
+}
+
+class _GameHubScreenState extends State<GameHubScreen> {
+  String _lang = 'bn';
+
   final List<Map<String, dynamic>> games = const [
-    {'id': '2048', 'name': '2048 Merge', 'icon': Icons.grid_view},
-    {'id': 'water_sort', 'name': 'Water Sort', 'icon': Icons.local_drink},
-    {'id': 'dot_connect', 'name': 'Dot Connect', 'icon': Icons.pattern},
-    {'id': 'laser', 'name': 'Laser & Mirrors', 'icon': Icons.flare},
-    {'id': 'survival', 'name': 'Text Survival', 'icon': Icons.book},
-    {'id': 'dot_survivor', 'name': 'Dot Survivor', 'icon': Icons.blur_on},
-    {'id': 'tower_defense', 'name': 'Tower Defense', 'icon': Icons.castle},
-    {'id': 'runner', 'name': '2D Runner', 'icon': Icons.directions_run},
-    {'id': 'double_runner', 'name': 'Double Runner', 'icon': Icons.people},
-    {'id': 'stack_jump', 'name': 'Stack & Jump', 'icon': Icons.stacked_bar_chart},
+    {'id': '2048', 'name_bn': '২০৪৮', 'name_en': '2048 Merge', 'icon': Icons.grid_view},
+    {'id': 'water_sort', 'name_bn': 'ওয়াটার সর্ট', 'name_en': 'Water Sort', 'icon': Icons.local_drink},
+    {'id': 'dot_connect', 'name_bn': 'ডট কানেক্ট', 'name_en': 'Dot Connect', 'icon': Icons.pattern},
+    {'id': 'laser', 'name_bn': 'লেজার ও মিরর', 'name_en': 'Laser & Mirrors', 'icon': Icons.flare},
+    {'id': 'survival', 'name_bn': 'টেক্সট সারভাইভাল', 'name_en': 'Text Survival', 'icon': Icons.book},
+    {'id': 'dot_survivor', 'name_bn': 'ডট সারভাইভার', 'name_en': 'Dot Survivor', 'icon': Icons.blur_on},
+    {'id': 'tower_defense', 'name_bn': 'টাওয়ার ডিফেন্স', 'name_en': 'Tower Defense', 'icon': Icons.castle},
+    {'id': 'runner', 'name_bn': '২ডি রানার', 'name_en': '2D Runner', 'icon': Icons.directions_run},
+    {'id': 'double_runner', 'name_bn': 'ডাবল রানার', 'name_en': 'Double Runner', 'icon': Icons.people},
+    {'id': 'stack_jump', 'name_bn': 'স্ট্যাক জাম্প', 'name_en': 'Stack & Jump', 'icon': Icons.stacked_bar_chart},
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadLanguage();
+  }
+
+  Future<void> _loadLanguage() async {
+    final lang = await PreferencesService.getLanguage();
+    if (mounted) {
+      setState(() {
+        _lang = lang;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isBn = _lang == 'bn';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('মিনি গেমস'),
+        title: Text(isBn ? 'মিনি গেমস' : 'Mini Games'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -35,10 +60,11 @@ class GameHubScreen extends StatelessWidget {
           itemCount: games.length,
           itemBuilder: (context, index) {
             final game = games[index];
+            final name = isBn ? game['name_bn'] : game['name_en'];
             return InkWell(
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${game['name']} শীঘ্রই আসছে!')),
+                  SnackBar(content: Text(isBn ? '$name শীঘ্রই আসছে!' : '$name coming soon!')),
                 );
               },
               borderRadius: BorderRadius.circular(16),
@@ -67,13 +93,16 @@ class GameHubScreen extends StatelessWidget {
                       child: Icon(game['icon'], size: 28, color: AppColors.gamesAccent),
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      game['name'],
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Text(
+                        name,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                   ],
