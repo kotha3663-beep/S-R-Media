@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_colors.dart';
-import 'features/home/home_screen.dart';
+import 'core/navigation/main_navigation_screen.dart';
 
 void main() {
   runApp(const MyWorkApp());
@@ -17,7 +17,6 @@ class MyWorkApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
         primaryColor: AppColors.primary,
-        fontFamily: 'NotoSansBengali',
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           primary: AppColors.primary,
@@ -43,29 +42,8 @@ class MyWorkApp extends StatelessWidget {
             side: const BorderSide(color: AppColors.divider, width: 1),
           ),
         ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: AppColors.cardBackground,
-          elevation: 8,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: AppColors.cardBackground,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.divider),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.divider),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.secondary, width: 2),
-          ),
-        ),
       ),
-      home: const HomeScreen(),
+      home: const MainNavigationScreen(),
     );
   }
 }
