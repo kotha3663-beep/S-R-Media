@@ -14,11 +14,10 @@ class QuizRepository {
     required int averageTimeNs,
     required int fastestCorrectNs,
     required String grade,
-    required List<Map<String, dynamic>> answers, // উত্তরগুলো এখানে পাস হবে
+    required List<Map<String, dynamic>> answers,
   }) async {
     final db = await DatabaseHelper.database;
     
-    // ট্রানজ্যাকশন শুরু করা হলো যাতে রেজাল্ট এবং উত্তর একসাথে সেভ হয়
     return await db.transaction((txn) async {
       final resultId = await txn.insert('quiz_results', {
         'category': category,
@@ -34,15 +33,17 @@ class QuizRepository {
         'createdAt': DateTime.now().toIso8601String(),
       });
 
-      // উত্তরগুলো সেভ করা
       for (var ans in answers) {
         await txn.insert('quiz_answers', {
           'quiz_result_id': resultId,
-          'question_group_id': ans['questionId'],
+          'question_text': ans['questionText'],
+          'options': ans['options'],
+          'correct_option_index': ans['correctOptionIndex'],
           'selected_option': ans['selectedOption'],
           'is_correct': ans['isCorrect'] ? 1 : 0,
           'time_taken_ns': ans['timeTakenNs'],
           'points_earned': ans['pointsEarned'],
+          'explanation': ans['explanation'],
         });
       }
 
