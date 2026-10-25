@@ -18,7 +18,7 @@ class QuestionRepository {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE quiz_questions(
@@ -34,6 +34,11 @@ class QuestionRepository {
           )
         ''');
         await _insertInitialQuestions(db);
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await _insertInitialQuestions(db);
+        }
       },
     );
   }
@@ -61,7 +66,7 @@ class QuestionRepository {
         'explanation': 'The national flower of Bangladesh is the Water Lily. It was declared as the national flower after independence in 1971.',
       },
       {
-        'groupId': 1,
+        'groupId': 2,
         'languageCode': 'bn',
         'category': 'বাংলাদেশ বিষয়াবলি',
         'difficulty': 'সহজ',
@@ -71,7 +76,7 @@ class QuestionRepository {
         'explanation': 'বাংলাদেশের স্বাধীনতা দিবস ২৬ মার্চ।',
       },
       {
-        'groupId': 1,
+        'groupId': 2,
         'languageCode': 'en',
         'category': 'Bangladesh Affairs',
         'difficulty': 'Easy',
@@ -81,7 +86,7 @@ class QuestionRepository {
         'explanation': 'The Independence Day of Bangladesh is 26 March.',
       },
       {
-        'groupId': 2,
+        'groupId': 3,
         'languageCode': 'bn',
         'category': 'বিজ্ঞান ও প্রযুক্তি',
         'difficulty': 'মাঝারি',
@@ -91,7 +96,7 @@ class QuestionRepository {
         'explanation': 'শূন্য মাধ্যমে আলোর গতিবেগ প্রতি সেকেন্ডে প্রায় ৩,০০,০০০ কিলোমিটার।',
       },
       {
-        'groupId': 2,
+        'groupId': 3,
         'languageCode': 'en',
         'category': 'Science & Technology',
         'difficulty': 'Medium',
@@ -101,7 +106,7 @@ class QuestionRepository {
         'explanation': 'The speed of light in a vacuum is approximately 300,000 kilometers per second.',
       },
       {
-        'groupId': 3,
+        'groupId': 4,
         'languageCode': 'bn',
         'category': 'ইতিহাস',
         'difficulty': 'সহজ',
@@ -111,7 +116,7 @@ class QuestionRepository {
         'explanation': 'বাংলাদেশের মুক্তিযুদ্ধ ১৯৭১ সালে হয়।',
       },
       {
-        'groupId': 3,
+        'groupId': 4,
         'languageCode': 'en',
         'category': 'History',
         'difficulty': 'Easy',
@@ -121,7 +126,7 @@ class QuestionRepository {
         'explanation': 'The Liberation War of Bangladesh took place in 1971.',
       },
       {
-        'groupId': 4,
+        'groupId': 5,
         'languageCode': 'bn',
         'category': 'ভূগোল',
         'difficulty': 'মাঝারি',
@@ -131,7 +136,7 @@ class QuestionRepository {
         'explanation': 'বাংলাদেশের মোট আয়তন ১,৪৭,৫৭০ বর্গকিলোমিটার।',
       },
       {
-        'groupId': 4,
+        'groupId': 5,
         'languageCode': 'en',
         'category': 'Geography',
         'difficulty': 'Medium',
@@ -141,7 +146,7 @@ class QuestionRepository {
         'explanation': 'The total area of Bangladesh is 147,570 square kilometers.',
       },
       {
-        'groupId': 5,
+        'groupId': 6,
         'languageCode': 'bn',
         'category': 'খেলাধুলা',
         'difficulty': 'কঠিন',
@@ -151,7 +156,7 @@ class QuestionRepository {
         'explanation': 'বাংলাদেশ ক্রিকেট দল ২০০৫ সালে জিম্বাবুয়ের বিপক্ষে তাদের প্রথম টেস্ট ম্যাচ জয়লাভ করে।',
       },
       {
-        'groupId': 5,
+        'groupId': 6,
         'languageCode': 'en',
         'category': 'Sports',
         'difficulty': 'Hard',
@@ -161,7 +166,7 @@ class QuestionRepository {
         'explanation': 'The Bangladesh cricket team won their first Test match against Zimbabwe in 2005.',
       },
       {
-        'groupId': 6,
+        'groupId': 7,
         'languageCode': 'bn',
         'category': 'সাহিত্য ও সংস্কৃতি',
         'difficulty': 'মাঝারি',
@@ -171,7 +176,7 @@ class QuestionRepository {
         'explanation': 'রবীন্দ্রনাথ ঠাকুর ১৯১৩ সালে সাহিত্যে নোবেল পুরস্কার লাভ করেন।',
       },
       {
-        'groupId': 6,
+        'groupId': 7,
         'languageCode': 'en',
         'category': 'Literature & Culture',
         'difficulty': 'Medium',
@@ -181,7 +186,7 @@ class QuestionRepository {
         'explanation': 'Rabindranath Tagore won the Nobel Prize in Literature in 1913.',
       },
       {
-        'groupId': 7,
+        'groupId': 8,
         'languageCode': 'bn',
         'category': 'কম্পিউটার ও ডিজিটাল জ্ঞান',
         'difficulty': 'সহজ',
@@ -191,7 +196,7 @@ class QuestionRepository {
         'explanation': 'চার্লস ব্যাবেজকে কম্পিউটারের জনক বলা হয়।',
       },
       {
-        'groupId': 7,
+        'groupId': 8,
         'languageCode': 'en',
         'category': 'Computer & Digital Knowledge',
         'difficulty': 'Easy',
@@ -201,7 +206,7 @@ class QuestionRepository {
         'explanation': 'Charles Babbage is known as the father of the computer.',
       },
       {
-        'groupId': 8,
+        'groupId': 9,
         'languageCode': 'bn',
         'category': 'স্বাস্থ্য ও দৈনন্দিন বিজ্ঞান',
         'difficulty': 'সহজ',
@@ -211,7 +216,7 @@ class QuestionRepository {
         'explanation': 'প্রতিদিন কমপক্ষে ৮ গ্লাস পানি পান করা উচিত।',
       },
       {
-        'groupId': 8,
+        'groupId': 9,
         'languageCode': 'en',
         'category': 'Health & Daily Science',
         'difficulty': 'Easy',
@@ -225,6 +230,87 @@ class QuestionRepository {
     for (var q in questions) {
       await db.insert('quiz_questions', q);
     }
+  }
+
+  Future<List<QuestionModel>> generateQuestionsFromKnowledge(String langCode, String? category, int limit) async {
+    final dbPath = await getDatabasesPath();
+    final kPath = join(dbPath, 'mywork_knowledge.db');
+    
+    List<Map<String, dynamic>> knowledgeItems = [];
+    try {
+      final kDb = await openDatabase(kPath, readOnly: true);
+      if (category != null && category.isNotEmpty) {
+        knowledgeItems = await kDb.query(
+          'knowledge_items',
+          where: 'languageCode = ? AND category = ?',
+          whereArgs: [langCode, category],
+        );
+      } else {
+        knowledgeItems = await kDb.query(
+          'knowledge_items',
+          where: 'languageCode = ?',
+          whereArgs: [langCode],
+        );
+      }
+      await kDb.close();
+    } catch (e) {
+      return await getQuestionsByLanguage(langCode, category, limit);
+    }
+
+    if (knowledgeItems.isEmpty) {
+      return await getQuestionsByLanguage(langCode, category, limit);
+    }
+
+    knowledgeItems.shuffle(Random());
+    final selectedItems = knowledgeItems.take(limit).toList();
+    final List<QuestionModel> generatedQuestions = [];
+    final random = Random();
+
+    for (var item in selectedItems) {
+      final title = item['title'] as String;
+      final keyPoint = item['keyPoint'] as String;
+      final body = item['body'] as String;
+      final cat = item['category'] as String;
+      
+      List<String> options = [];
+      int correctIndex = 0;
+      
+      if (langCode == 'bn') {
+        options = [keyPoint, 'কোনোটিই নয়', 'অজানা', 'ভুল তথ্য'];
+        correctIndex = 0;
+        options.shuffle(random);
+        correctIndex = options.indexOf(keyPoint);
+
+        generatedQuestions.add(QuestionModel(
+          groupId: item['groupId'],
+          languageCode: langCode,
+          category: cat,
+          difficulty: 'মাঝারি',
+          questionText: '$title - এর মূল পয়েন্ট কোনটি?',
+          options: options,
+          correctOptionIndex: correctIndex,
+          explanation: body,
+        ));
+      } else {
+        options = [keyPoint, 'None of these', 'Unknown', 'False info'];
+        correctIndex = 0;
+        options.shuffle(random);
+        correctIndex = options.indexOf(keyPoint);
+
+        generatedQuestions.add(QuestionModel(
+          groupId: item['groupId'],
+          languageCode: langCode,
+          category: cat,
+          difficulty: 'Medium',
+          questionText: 'What is the key point of $title?',
+          options: options,
+          correctOptionIndex: correctIndex,
+          explanation: body,
+        ));
+      }
+    }
+
+    return generatedQuestions;
   }
 
   Future<List<QuestionModel>> getQuestionsByLanguage(String langCode, String? category, int limit) async {
