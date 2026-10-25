@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/quiz_result_model.dart';
 import '../data/quiz_repository.dart';
+import 'wrong_answers_screen.dart';
 
 class QuizHistoryScreen extends StatefulWidget {
   const QuizHistoryScreen({super.key});
@@ -71,9 +72,25 @@ class _QuizHistoryScreenState extends State<QuizHistoryScreen> {
                             Text('স্কোর: ${res.totalScore.toStringAsFixed(1)} / ${res.maxPossibleScore.toStringAsFixed(0)}'),
                             Text('সঠিক: ${res.correctAnswers}/${res.totalQuestions} | সঠিকতা: ${res.accuracyPercent.toStringAsFixed(1)}%'),
                             Text('গড় সময়: ${(res.averageTimeNs / 1000000000).toStringAsFixed(3)} সে'),
-                            Text(
-                              '${res.createdAt.day}/${res.createdAt.month}/${res.createdAt.year} ${res.createdAt.hour}:${res.createdAt.minute}',
-                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${res.createdAt.day}/${res.createdAt.month}/${res.createdAt.year} ${res.createdAt.hour}:${res.createdAt.minute}',
+                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                                ),
+                                if (res.wrongAnswers > 0 && res.id != null)
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context, 
+                                        MaterialPageRoute(builder: (_) => WrongAnswersScreen(quizResultId: res.id!))
+                                      );
+                                    },
+                                    child: const Text('ভুলগুলো দেখুন'),
+                                  ),
+                              ],
                             ),
                           ],
                         ),
