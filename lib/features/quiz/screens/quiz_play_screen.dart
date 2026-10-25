@@ -23,7 +23,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
   int _currentIndex = 0;
   int _correctCount = 0;
   int _wrongCount = 0;
-  double _totalScore = 0;
+  double _totalScore = 0.0;
   int _totalTimeNs = 0;
   int _fastestCorrectNs = 9999999999999;
   
@@ -74,7 +74,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
       _wrongCount++;
     });
     
-    _saveAnswerToMemory(-1, false, timeTakenNs, 0);
+    _saveAnswerToMemory(-1, false, timeTakenNs, 0.0);
   }
 
   void _handleOptionSelect(int index) {
@@ -88,7 +88,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
 
     final question = widget.questions[_currentIndex];
     final isCorrect = index == question.correctOptionIndex;
-    double pointsEarned = 0;
+    double pointsEarned = 0.0;
 
     setState(() {
       _selectedOption = index;
@@ -101,8 +101,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
         }
         
         final remainingRatio = (_maxTime - (timeTakenNs / 1000000000)) / _maxTime;
-        final speedPoints = 30 * (remainingRatio > 0 ? remainingRatio : 0);
-        pointsEarned = 70 + speedPoints;
+        final speedPoints = 30.0 * (remainingRatio > 0 ? remainingRatio : 0.0);
+        pointsEarned = 70.0 + speedPoints; // double এ কনভার্ট করা হলো
         _totalScore += pointsEarned;
       } else {
         _wrongCount++;
@@ -142,12 +142,12 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
     setState(() => _isSaving = true);
 
     final totalQ = widget.questions.length;
-    final accuracy = (_correctCount / totalQ) * 100;
+    final accuracy = (_correctCount / totalQ) * 100.0;
     final maxScore = totalQ * 100.0;
     final avgTimeNs = _totalTimeNs ~/ totalQ;
     
     String grade = 'E';
-    final scorePercent = (_totalScore / maxScore) * 100;
+    final scorePercent = (_totalScore / maxScore) * 100.0;
     if (scorePercent >= 90) grade = 'S';
     else if (scorePercent >= 80) grade = 'A';
     else if (scorePercent >= 70) grade = 'B';
