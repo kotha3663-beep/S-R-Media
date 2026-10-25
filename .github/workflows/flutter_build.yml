@@ -9,7 +9,7 @@ on:
     branches:
       - main
       - master
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   build:
@@ -28,20 +28,21 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.2' 
+          flutter-version: '3.24.0'   # বা আপনার পছন্দের স্টেবল ভার্সন
           channel: 'stable'
           cache: true
 
       - name: Get Dependencies
         run: flutter pub get
 
-      # প্রজেক্টের নাম ফোর্স করে s_r_media সেট করা হচ্ছে
-      - name: Fix Project Name
-        run: sed -i 's/^name:.*/name: s_r_media/' pubspec.yaml
-
-      # এখন flutter create রান করলে আর এরর দেবে না
+      # Project name ফিক্স + Android ফোল্ডার তৈরি
       - name: Fix Android Project Structure
-        run: flutter create . --platforms=android
+        run: |
+          # pubspec.yaml-এর name ঠিক করা
+          sed -i 's/^name:.*/name: mywork/' pubspec.yaml
+          
+          # flutter create চালানো — project-name আলাদা করে দিচ্ছি
+          flutter create . --project-name mywork --org com.mywork --platforms=android
 
       - name: Build APK (Release)
         run: flutter build apk --release
