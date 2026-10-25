@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/language_service.dart';
 import 'about_screen.dart';
+import 'backup_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -40,6 +41,21 @@ class SettingsScreen extends StatelessWidget {
                   title: const Text('English'),
                   trailing: currentLang == 'en' ? const Icon(Icons.check_circle, color: AppColors.success) : null,
                   onTap: () => langService.changeLanguage('en'),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'ডেটা / Data',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.backup, color: AppColors.secondary),
+                  title: const Text('ব্যাকআপ ও রিস্টোর'),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const BackupScreen()));
+                  },
                 ),
               ),
               const SizedBox(height: 24),
