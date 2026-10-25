@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/question_model.dart';
 import '../data/quiz_repository.dart';
-import '../data/quiz_answer_repository.dart';
 import 'quiz_result_screen.dart';
 
 class QuizPlayScreen extends StatefulWidget {
@@ -37,6 +36,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
   final int _maxTime = 20;
   
   late Stopwatch _stopwatch;
+  List<Map<String, dynamic>> _answers = [];
 
   @override
   void initState() {
@@ -73,7 +73,8 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
       _selectedOption = -1;
       _wrongCount++;
     });
-    _saveAnswer(-1, false, timeTakenNs, 0);
+    
+    _saveAnswerToMemory(-1, false, timeTakenNs, 0);
   }
 
   void _handleOptionSelect(int index) {
@@ -108,19 +109,17 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
       }
     });
 
-    _saveAnswer(index, isCorrect, timeTakenNs, pointsEarned);
+    _saveAnswerToMemory(index, isCorrect, timeTakenNs, pointsEarned);
   }
 
-  Future<void> _saveAnswer(int selected, bool isCorrect, int timeNs, double points) async {
-    if (widget.questions[_currentIndex].id == null) return;
-    await QuizAnswerRepository().saveAnswer(
-      quizResultId: 0, // Temporary, will update on finish
-      questionGroupId: widget.questions[_currentIndex].id!,
-      selectedOption: selected,
-      isCorrect: isCorrect,
-      timeTakenNs: timeNs,
-      pointsEarned: points,
-    );
+  void _saveAnswerToMemory(int selected, bool isCorrect, int timeNs, double points) {
+    _answers.add({
+      'questionId': widget.questions[_currentIndex].id ?? 0,
+      'selectedOption': selected,
+      'isCorrect': isCorrect,
+      'timeTakenNs': timeNs,
+      'pointsEarned': points,
+    });
   }
 
   void _nextQuestion() {
@@ -162,6 +161,7 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
       averageTimeNs: avgTimeNs,
       fastestCorrectNs: _fastestCorrectNs == 9999999999999 ? 0 : _fastestCorrectNs,
       grade: grade,
+      answers: _answers,
     );
 
     if (mounted) {
