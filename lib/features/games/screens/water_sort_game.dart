@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/language_service.dart';
+import 'game_over_screen.dart';
 
 class WaterSortGame extends StatefulWidget {
   const WaterSortGame({super.key});
@@ -19,6 +21,7 @@ class _WaterSortGameState extends State<WaterSortGame> {
 
   int? _selectedTube;
   final int _capacity = 4;
+  int _moves = 0;
 
   void _handleTubeTap(int index) {
     if (_selectedTube == null) {
@@ -45,6 +48,7 @@ class _WaterSortGameState extends State<WaterSortGame> {
               count++;
             }
             _selectedTube = null;
+            _moves++;
           });
           _checkWin();
         } else {
@@ -73,20 +77,17 @@ class _WaterSortGameState extends State<WaterSortGame> {
     }
 
     if (isWin) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('অভিনন্দন!'),
-          content: const Text('আপনি গেমটি সমাধান করেছেন।'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.pop(context);
-              },
-              child: const Text('ফিরে যান'),
-            ),
-          ],
+      final isBn = LanguageService().currentLocale.languageCode == 'bn';
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => GameOverScreen(
+            gameId: 'water_sort',
+            gameName: isBn ? 'ওয়াটার সর্ট' : 'Water Sort',
+            score: _moves,
+            onRestart: () => _resetGame(),
+            onExit: () => Navigator.pop(context),
+          ),
         ),
       );
     }
@@ -95,6 +96,7 @@ class _WaterSortGameState extends State<WaterSortGame> {
   void _resetGame() {
     setState(() {
       _selectedTube = null;
+      _moves = 0;
       _tubes.clear();
       _tubes.addAll([
         [Colors.red, Colors.blue, Colors.green, Colors.yellow],
@@ -108,9 +110,11 @@ class _WaterSortGameState extends State<WaterSortGame> {
 
   @override
   Widget build(BuildContext context) {
+    final isBn = LanguageService().currentLocale.languageCode == 'bn';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Water Sort'),
+        title: Text(isBn ? 'ওয়াটার সর্ট' : 'Water Sort'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -118,48 +122,58 @@ class _WaterSortGameState extends State<WaterSortGame> {
           ),
         ],
       ),
-      body: Center(
-        child: Wrap(
-          spacing: 20,
-          runSpacing: 40,
-          alignment: WrapAlignment.center,
-          children: List.generate(_tubes.length, (index) {
-            final isSelected = _selectedTube == index;
-            return GestureDetector(
-              onTap: () => _handleTubeTap(index),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 60,
-                height: 220,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: isSelected ? AppColors.secondary : AppColors.textSecondary,
-                    width: isSelected ? 4 : 2,
-                  ),
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(30),
-                    top: Radius.circular(10),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: _tubes[index].map((color) {
-                    return Container(
-                      width: double.infinity,
-                      height: 50,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text(isBn ? 'চাল: $_moves' : 'Moves: $_moves', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            child: Center(
+              child: Wrap(
+                spacing: 20,
+                runSpacing: 40,
+                alignment: WrapAlignment.center,
+                children: List.generate(_tubes.length, (index) {
+                  final isSelected = _selectedTube == index;
+                  return GestureDetector(
+                    onTap: () => _handleTubeTap(index),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 60,
+                      height: 220,
                       decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.vertical(
-                          bottom: _tubes[index].first == color ? const Radius.circular(28) : Radius.zero,
+                        border: Border.all(
+                          color: isSelected ? AppColors.secondary : AppColors.textSecondary,
+                          width: isSelected ? 4 : 2,
+                        ),
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(30),
+                          top: Radius.circular(10),
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: _tubes[index].map((color) {
+                          return Container(
+                            width: double.infinity,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.vertical(
+                                bottom: _tubes[index].first == color ? const Radius.circular(28) : Radius.zero,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  );
+                }),
               ),
-            );
-          }),
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
