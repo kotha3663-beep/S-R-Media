@@ -1,85 +1,9 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import '../models/health_tip_model.dart';
+import '../../../core/database/database_helper.dart';
 
 class HealthRepository {
-  static Database? _database;
-
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
-  }
-
-  Future<Database> _initDatabase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'mywork_health.db');
-
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE health_tips(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT,
-            category TEXT,
-            description TEXT,
-            isBookmarked INTEGER
-          )
-        ''');
-        await _insertInitialTips(db);
-      },
-    );
-  }
-
-  Future<void> _insertInitialTips(Database db) async {
-    final tips = [
-      {
-        'title': 'প্রচুর পানি পান করুন',
-        'category': 'হাইড্রেশন',
-        'description': 'প্রতিদিন কমপক্ষে ৮ গ্লাস পানি পান করুন। এটি আপনার ত্বক এবং শরীরকে সতেজ রাখতে সাহায্য করবে।',
-        'isBookmarked': 0,
-      },
-      {
-        'title': 'নিয়মিত ব্যায়াম করুন',
-        'category': 'ব্যায়াম',
-        'description': 'প্রতিদিন কমপক্ষে ৩০ মিনিট হাঁটুন বা হালকা ব্যায়াম করুন। এটি হার্টের স্বাস্থ্যের জন্য ভালো।',
-        'isBookmarked': 0,
-      },
-      {
-        'title': 'পর্যাপ্ত ঘুম',
-        'category': 'ঘুম',
-        'description': 'প্রতিদিন ৭-৮ ঘণ্টা ঘুমানোর চেষ্টা করুন। ঘুমের অভাবে মনোযোগ কমে যায় এবং শরীর দুর্বল হয়ে পড়ে।',
-        'isBookmarked': 0,
-      },
-      {
-        'title': 'স্বাস্থ্যকর খাবার খান',
-        'category': 'পুষ্টি',
-        'description': 'ফাস্ট ফুড এড়িয়ে চলুন এবং বেশি বেশি শাকসবজি ও ফলমূল খান। প্রক্রিয়াজাত খাবার কম খান।',
-        'isBookmarked': 0,
-      },
-      {
-        'title': 'হাত ধোয়ার অভ্যাস',
-        'category': 'পরিচ্ছন্নতা',
-        'description': 'খাওয়ার আগে এবং বাথরুম ব্যবহারের পর সাবান দিয়ে হাত ধুয়ে নিন। এটি রোগ প্রতিরোধে সাহায্য করে।',
-        'isBookmarked': 0,
-      },
-      {
-        'title': 'স্ট্রেস কমান',
-        'category': 'মানসিক স্বাস্থ্য',
-        'description': 'প্রতিদিন কিছুটা সময় ধ্যান বা প্রাণায়ামের জন্য রাখুন। ইতিবাচক চিন্তা করুন এবং প্রয়োজন হলে পরিবারের সাথে কথা বলুন।',
-        'isBookmarked': 0,
-      }
-    ];
-
-    for (var tip in tips) {
-      await db.insert('health_tips', tip);
-    }
-  }
-
   Future<List<HealthTipModel>> getAllTips() async {
-    final db = await database;
+    final db = await DatabaseHelper.database;
     final maps = await db.query('health_tips');
     return List.generate(maps.length, (i) {
       return HealthTipModel.fromMap(maps[i]);
@@ -87,12 +11,29 @@ class HealthRepository {
   }
 
   Future<void> toggleBookmark(int id, bool isBookmarked) async {
-    final db = await database;
+    final db = await DatabaseHelper.database;
     await db.update(
       'health_tips',
       {'isBookmarked': isBookmarked ? 1 : 0},
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  // প্রথমবার ডেটা ইনসার্ট করার জন্য
+  Future<void> insertInitialTipsIfNeeded() async {
+    final db = await DatabaseHelper.database;
+    final count = await db.query('health_tips');
+    if (count.isEmpty) {
+      final tips = [
+        {'title': 'প্রচুর পানি পান করুন', 'category': 'হাইড্রেশন', 'description': 'প্রতিদিন কমপক্ষে ৮ গ্লাস পানি পান করুন।', 'isBookmarked': 0},
+        {'title': 'নিয়মিত ব্যায়াম করুন', 'category': 'ব্যায়াম', 'description': 'প্রতিদিন কমপক্ষে ৩০ মিনিট হাঁটুন।', 'isBookmarked': 0},
+        {'title': 'পর্যাপ্ত ঘুম', 'category': 'ঘুম', 'description': 'প্রতিদিন ৭-৮ ঘণ্টা ঘুমানোর চেষ্টা করুন।', 'isBookmarked': 0},
+        {'title': 'স্বাস্থ্যকর খাবার খান', 'category': 'পুষ্টি', 'description': 'ফাস্ট ফুড এড়িয়ে চলুন এবং শাকসবজি খান।', 'isBookmarked': 0},
+      ];
+      for (var tip in tips) {
+        await db.insert('health_tips', tip);
+      }
+    }
   }
 }
