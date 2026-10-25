@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'game_over_screen.dart';
+import '../data/game_repository.dart';
 
 class StackJumpGame extends StatefulWidget {
   const StackJumpGame({super.key});
@@ -16,12 +18,23 @@ class _StackJumpGameState extends State<StackJumpGame> {
   int score = 0;
   bool isGameOver = false;
   Timer? _timer;
-  final Random _random = Random();
+  double _bestScore = 0;
 
   @override
   void initState() {
     super.initState();
+    _loadBestScore();
     _startGame();
+  }
+
+  Future<void> _loadBestScore() async {
+    final repo = GameRepository();
+    final record = await repo.getGameRecord('stack_jump');
+    if (record != null) {
+      setState(() {
+        _bestScore = record.highScore.toDouble();
+      });
+    }
   }
 
   void _startGame() {
@@ -58,7 +71,23 @@ class _StackJumpGameState extends State<StackJumpGame> {
         isGameOver = true;
         _timer?.cancel();
       });
+      _showGameOver();
     }
+  }
+
+  void _showGameOver() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GameOverScreen(
+          gameId: 'stack_jump',
+          gameName: 'Stack & Jump',
+          score: score,
+          onRestart: _startGame,
+          onExit: () => Navigator.pop(context),
+        ),
+      ),
+    );
   }
 
   @override
@@ -70,7 +99,17 @@ class _StackJumpGameState extends State<StackJumpGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Stack & Jump')),
+      appBar: AppBar(
+        title: const Text('Stack & Jump'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Center(
+              child: Text('সর্বোচ্চ: ${_bestScore.toInt()}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          )
+        ],
+      ),
       body: GestureDetector(
         onTap: _dropBlock,
         child: Container(
@@ -106,17 +145,6 @@ class _StackJumpGameState extends State<StackJumpGame> {
                   ),
                 ),
               ),
-              if (isGameOver)
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('গেম ওভার!', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 20),
-                      ElevatedButton(onPressed: _startGame, child: const Text('আবার শুরু করুন')),
-                    ],
-                  ),
-                )
             ],
           ),
         ),
