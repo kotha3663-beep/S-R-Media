@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/database/database_helper.dart';
-import '../models/question_model.dart';
 
 class WrongAnswersScreen extends StatefulWidget {
   final int quizResultId;
@@ -30,24 +29,9 @@ class _WrongAnswersScreenState extends State<WrongAnswersScreen> {
       whereArgs: [widget.quizResultId, 0],
     );
 
-    List<Map<String, dynamic>> results = [];
-    for (var ans in answers) {
-      final qMaps = await db.query(
-        'quiz_questions',
-        where: 'id = ?',
-        whereArgs: [ans['question_group_id']],
-      );
-      if (qMaps.isNotEmpty) {
-        results.add({
-          'question': QuestionModel.fromMap(qMaps.first),
-          'selected': ans['selected_option'],
-        });
-      }
-    }
-
     if (mounted) {
       setState(() {
-        _wrongAnswers = results;
+        _wrongAnswers = answers;
         _isLoading = false;
       });
     }
@@ -67,9 +51,12 @@ class _WrongAnswersScreenState extends State<WrongAnswersScreen> {
                   padding: const EdgeInsets.all(20),
                   itemCount: _wrongAnswers.length,
                   itemBuilder: (context, index) {
-                    final data = _wrongAnswers[index];
-                    final question = data['question'] as QuestionModel;
-                    final selected = data['selected'] as int;
+                    final ans = _wrongAnswers[index];
+                    final questionText = ans['question_text'] as String;
+                    final options = (ans['options'] as String).split('|||');
+                    final correctIndex = ans['correct_option_index'] as int;
+                    final selectedIndex = ans['selected_option'] as int;
+                    final explanation = ans['explanation'] as String;
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -79,23 +66,28 @@ class _WrongAnswersScreenState extends State<WrongAnswersScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              question.questionText,
+                              questionText,
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 12),
-                            if (selected >= 0 && selected < question.options.length)
+                            if (selectedIndex >= 0 && selectedIndex < options.length)
                               Text(
-                                'আপনার উত্তর: ${question.options[selected]}',
+                                'আপনার উত্তর: ${options[selectedIndex]}',
                                 style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.w500),
+                              ),
+                            if (selectedIndex == -1)
+                              const Text(
+                                'আপনার উত্তর: সময় শেষ',
+                                style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w500),
                               ),
                             const SizedBox(height: 4),
                             Text(
-                              'সঠিক উত্তর: ${question.options[question.correctOptionIndex]}',
+                              'সঠিক উত্তর: ${options[correctIndex]}',
                               style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w500),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              question.explanation,
+                              explanation,
                               style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
                             ),
                           ],
