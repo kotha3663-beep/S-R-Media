@@ -16,7 +16,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // ভার্সন ২ করা হলো
       onCreate: (db, version) async {
         // ১. লেজার টেবিল
         await db.execute('''
@@ -99,19 +99,42 @@ class DatabaseHelper {
           )
         ''');
 
-        // ৭. কুইজ উত্তর টেবিল (রেজাল্টের সাথে লিংকড)
+        // ৭. কুইজ উত্তর টেবিল (স্ন্যাপশটসহ)
         await db.execute('''
           CREATE TABLE quiz_answers(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             quiz_result_id INTEGER,
-            question_group_id INTEGER,
+            question_text TEXT,
+            options TEXT,
+            correct_option_index INTEGER,
             selected_option INTEGER,
             is_correct INTEGER,
             time_taken_ns INTEGER,
             points_earned REAL,
+            explanation TEXT,
             FOREIGN KEY (quiz_result_id) REFERENCES quiz_results(id) ON DELETE CASCADE
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('DROP TABLE IF EXISTS quiz_answers');
+          await db.execute('''
+            CREATE TABLE quiz_answers(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              quiz_result_id INTEGER,
+              question_text TEXT,
+              options TEXT,
+              correct_option_index INTEGER,
+              selected_option INTEGER,
+              is_correct INTEGER,
+              time_taken_ns INTEGER,
+              points_earned REAL,
+              explanation TEXT,
+              FOREIGN KEY (quiz_result_id) REFERENCES quiz_results(id) ON DELETE CASCADE
+            )
+          ''');
+        }
       },
     );
   }
