@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/language_service.dart';
+import 'game_over_screen.dart';
 
 class TextSurvivalGame extends StatefulWidget {
   const TextSurvivalGame({super.key});
@@ -13,24 +15,53 @@ class _TextSurvivalGameState extends State<TextSurvivalGame> {
   int food = 100;
   int health = 100;
   int day = 1;
-  String _story = 'আপনি একটি দ্বীপে আটকে পড়েছেন। সামনে একটি ঝোপ এবং একটি গুহা দেখা যাচ্ছে। আপনি কী করবেন?';
+  String _story = '';
   bool _isGameOver = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _resetGame();
+  }
+
+  void _resetGame() {
+    setState(() {
+      water = 100;
+      food = 100;
+      health = 100;
+      day = 1;
+      _isGameOver = false;
+      final isBn = LanguageService().currentLocale.languageCode == 'bn';
+      _story = isBn 
+          ? 'আপনি একটি দ্বীপে আটকে পড়েছেন। সামনে একটি ঝোপ এবং একটি গুহা দেখা যাচ্ছে। আপনি কী করবেন?'
+          : 'You are stranded on an island. There is a bush and a cave ahead. What will you do?';
+    });
+  }
+
   void _makeChoice(int choice) {
+    if (_isGameOver) return;
+    
+    final isBn = LanguageService().currentLocale.languageCode == 'bn';
     setState(() {
       if (choice == 1) {
         water -= 10;
         food += 20;
-        _story = 'আপনি ঝোপ থেকে কিছু ফল সংগ্রহ করেছেন। (+২০ খাবার)';
+        _story = isBn 
+            ? 'আপনি ঝোপ থেকে কিছু ফল সংগ্রহ করেছেন। (+২০ খাবার)' 
+            : 'You gathered some fruits from the bush. (+20 Food)';
       } else if (choice == 2) {
         water += 20;
         health -= 10;
-        _story = 'গুহায় একটি পানির ঝর্ণা পেয়েছেন কিন্তু পথে হোঁচট খেয়েছেন। (+২০ পানি, -১০ স্বাস্থ্য)';
+        _story = isBn 
+            ? 'গুহায় একটি পানির ঝর্ণা পেয়েছেন কিন্তু পথে হোঁচট খেয়েছেন। (+২০ পানি, -১০ স্বাস্থ্য)' 
+            : 'You found a water spring in the cave but tripped on the way. (+20 Water, -10 Health)';
       } else if (choice == 3) {
         water -= 30;
         food -= 30;
         health += 20;
-        _story = 'আপনি বিশ্রাম নিয়েছেন এবং ঘুমিয়েছেন। (-৩০ খাবার, -৩০ পানি, +২০ স্বাস্থ্য)';
+        _story = isBn 
+            ? 'আপনি বিশ্রাম নিয়েছেন এবং ঘুমিয়েছেন। (-৩০ খাবার, -৩০ পানি, +২০ স্বাস্থ্য)' 
+            : 'You rested and slept. (-30 Food, -30 Water, +20 Health)';
       }
 
       day++;
@@ -40,17 +71,40 @@ class _TextSurvivalGameState extends State<TextSurvivalGame> {
 
       if (water == 0 || food == 0 || health == 0) {
         _isGameOver = true;
-        _story = 'আপনি আর বাঁচলেন না। আপনি $_day দিন টিকে ছিলেন।';
+        _story = isBn 
+            ? 'আপনি আর বাঁচলেন না। আপনি $day দিন টিকে ছিলেন।' 
+            : 'You did not survive. You survived for $day days.';
+        _showGameOver();
       } else {
-        _story = '$_story\n\nদিন $day শুরু হলো। আপনি কী করবেন?';
+        _story = isBn 
+            ? '$_story\n\nদিন $day শুরু হলো। আপনি কী করবেন?' 
+            : '$_story\n\nDay $day started. What will you do?';
       }
     });
   }
 
+  void _showGameOver() {
+    final isBn = LanguageService().currentLocale.languageCode == 'bn';
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GameOverScreen(
+          gameId: 'text_survival',
+          gameName: isBn ? 'টেক্সট সারভাইভাল' : 'Text Survival',
+          score: day,
+          onRestart: _resetGame,
+          onExit: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isBn = LanguageService().currentLocale.languageCode == 'bn';
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Text Survival')),
+      appBar: AppBar(title: Text(isBn ? 'টেক্সট সারভাইভাল' : 'Text Survival')),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -59,9 +113,9 @@ class _TextSurvivalGameState extends State<TextSurvivalGame> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStat('পানি', water, Colors.blue),
-                _buildStat('খাবার', food, Colors.orange),
-                _buildStat('স্বাস্থ্য', health, Colors.red),
+                _buildStat(isBn ? 'পানি' : 'Water', water, Colors.blue),
+                _buildStat(isBn ? 'খাবার' : 'Food', food, Colors.orange),
+                _buildStat(isBn ? 'স্বাস্থ্য' : 'Health', health, Colors.red),
               ],
             ),
             const SizedBox(height: 40),
@@ -86,33 +140,19 @@ class _TextSurvivalGameState extends State<TextSurvivalGame> {
             if (!_isGameOver) ...[
               ElevatedButton(
                 onPressed: () => _makeChoice(1),
-                child: const Text('ফল খুঁজুন'),
+                child: Text(isBn ? 'ফল খুঁজুন' : 'Search for food'),
               ),
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () => _makeChoice(2),
-                child: const Text('পানি খুঁজুন'),
+                child: Text(isBn ? 'পানি খুঁজুন' : 'Search for water'),
               ),
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () => _makeChoice(3),
-                child: const Text('বিশ্রাম নিন'),
+                child: Text(isBn ? 'বিশ্রাম নিন' : 'Rest'),
               ),
-            ] else 
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    water = 100;
-                    food = 100;
-                    health = 100;
-                    day = 1;
-                    _isGameOver = false;
-                    _story = 'আপনি একটি দ্বীপে আটকে পড়েছেন। সামনে একটি ঝোপ এবং একটি গুহা দেখা যাচ্ছে। আপনি কী করবেন?';
-                  });
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.secondary, foregroundColor: Colors.white),
-                child: const Text('আবার শুরু করুন'),
-              ),
+            ],
           ],
         ),
       ),
