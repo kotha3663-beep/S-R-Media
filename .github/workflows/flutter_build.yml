@@ -31,19 +31,17 @@ jobs:
       - name: Get Dependencies
         run: flutter pub get
 
-      - name: Create Android folder + Fix Project Name
+      - name: Create Android + Fix Name
         run: |
-          sed -i 's/^name: .*/name: mywork/' pubspec.yaml
           flutter create . --project-name mywork --org com.mywork.app --platforms=android
 
-      - name: Force correct Kotlin & Gradle versions
+      - name: Force Kotlin & Gradle
         run: |
           if [ -f android/settings.gradle ]; then
             sed -i 's/id "org.jetbrains.kotlin.android" version ".*"/id "org.jetbrains.kotlin.android" version "1.9.24"/' android/settings.gradle || true
           fi
           if [ -f android/build.gradle ]; then
             sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.24"/' android/build.gradle || true
-            sed -i 's/classpath .com.android.tools.build:gradle:.*/classpath "com.android.tools.build:gradle:8.3.0"/' android/build.gradle || true
           fi
           if [ -f android/gradle/wrapper/gradle-wrapper.properties ]; then
             sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.4-all.zip|' android/gradle/wrapper/gradle-wrapper.properties
