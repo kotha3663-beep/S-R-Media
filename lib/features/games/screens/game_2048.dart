@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/language_service.dart';
+import 'game_over_screen.dart';
 
 class Game2048 extends StatefulWidget {
   const Game2048({super.key});
@@ -11,6 +13,7 @@ class Game2048 extends StatefulWidget {
 class _Game2048State extends State<Game2048> {
   List<List<int>> _grid = List.generate(4, (_) => List.filled(4, 0));
   int _score = 0;
+  bool _isGameOver = false;
 
   @override
   void initState() {
@@ -22,6 +25,7 @@ class _Game2048State extends State<Game2048> {
     setState(() {
       _grid = List.generate(4, (_) => List.filled(4, 0));
       _score = 0;
+      _isGameOver = false;
       _addNewTile();
       _addNewTile();
     });
@@ -38,6 +42,17 @@ class _Game2048State extends State<Game2048> {
       final randomCell = emptyCells[(DateTime.now().millisecondsSinceEpoch % emptyCells.length)];
       _grid[randomCell[0]][randomCell[1]] = DateTime.now().millisecondsSinceEpoch % 10 == 0 ? 4 : 2;
     }
+  }
+
+  bool _canMove() {
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        if (_grid[i][j] == 0) return true;
+        if (i < 3 && _grid[i][j] == _grid[i + 1][j]) return true;
+        if (j < 3 && _grid[i][j] == _grid[i][j + 1]) return true;
+      }
+    }
+    return false;
   }
 
   void _moveLeft() {
@@ -119,6 +134,8 @@ class _Game2048State extends State<Game2048> {
   }
 
   void _handleSwipe(DragEndDetails details) {
+    if (_isGameOver) return;
+    
     final velocity = details.velocity.pixelsPerSecond;
     if (velocity.dx.abs() > velocity.dy.abs()) {
       if (velocity.dx > 0) {
@@ -133,9 +150,30 @@ class _Game2048State extends State<Game2048> {
         _moveUp();
       }
     }
+    
     setState(() {
       _addNewTile();
+      if (!_canMove()) {
+        _isGameOver = true;
+        _showGameOver();
+      }
     });
+  }
+
+  void _showGameOver() {
+    final isBn = LanguageService().currentLocale.languageCode == 'bn';
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GameOverScreen(
+          gameId: '2048',
+          gameName: isBn ? '২০৪৮' : '2048 Merge',
+          score: _score,
+          onRestart: _startNewGame,
+          onExit: () => Navigator.pop(context),
+        ),
+      ),
+    );
   }
 
   Color _getTileColor(int value) {
@@ -157,6 +195,8 @@ class _Game2048State extends State<Game2048> {
 
   @override
   Widget build(BuildContext context) {
+    final isBn = LanguageService().currentLocale.languageCode == 'bn';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('2048'),
@@ -174,8 +214,8 @@ class _Game2048State extends State<Game2048> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('স্কোর: $_score', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                const Text('সরাতে সোয়াইপ করুন', style: TextStyle(color: AppColors.textSecondary)),
+                Text(isBn ? 'স্কোর: $_score' : 'Score: $_score', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(isBn ? 'সরাতে সোয়াইপ করুন' : 'Swipe to move', style: const TextStyle(color: AppColors.textSecondary)),
               ],
             ),
           ),
