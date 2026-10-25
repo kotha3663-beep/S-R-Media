@@ -113,12 +113,16 @@ class _QuizPlayScreenState extends State<QuizPlayScreen> {
   }
 
   void _saveAnswerToMemory(int selected, bool isCorrect, int timeNs, double points) {
+    final q = widget.questions[_currentIndex];
     _answers.add({
-      'questionId': widget.questions[_currentIndex].id ?? 0,
+      'questionText': q.questionText,
+      'options': q.options.join('|||'),
+      'correctOptionIndex': q.correctOptionIndex,
       'selectedOption': selected,
       'isCorrect': isCorrect,
       'timeTakenNs': timeNs,
       'pointsEarned': points,
+      'explanation': q.explanation,
     });
   }
 
