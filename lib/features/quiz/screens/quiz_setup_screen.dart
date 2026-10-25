@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/language_service.dart';
 import '../data/question_repository.dart';
-import '../data/knowledge_repository.dart';
 import 'quiz_play_screen.dart';
 
 class QuizSetupScreen extends StatefulWidget {
@@ -14,7 +13,6 @@ class QuizSetupScreen extends StatefulWidget {
 
 class _QuizSetupScreenState extends State<QuizSetupScreen> {
   final _repo = QuestionRepository();
-  final _knowledgeRepo = KnowledgeRepository();
   List<String> _categories = [];
   String? _selectedCategory;
   int _questionCount = 5;
