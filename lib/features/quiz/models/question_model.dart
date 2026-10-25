@@ -38,7 +38,7 @@ class QuestionModel {
   factory QuestionModel.fromMap(Map<String, dynamic> map) {
     return QuestionModel(
       id: map['id'],
-      groupId: map['groupId'],
+      groupId: map['groupId'] ?? 0,
       languageCode: map['languageCode'],
       category: map['category'],
       difficulty: map['difficulty'],
