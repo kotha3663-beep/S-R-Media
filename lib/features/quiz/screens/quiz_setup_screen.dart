@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/services/preferences_service.dart';
+import '../../../core/services/language_service.dart';
 import '../data/question_repository.dart';
+import '../data/knowledge_repository.dart';
 import 'quiz_play_screen.dart';
 
 class QuizSetupScreen extends StatefulWidget {
@@ -13,10 +14,13 @@ class QuizSetupScreen extends StatefulWidget {
 
 class _QuizSetupScreenState extends State<QuizSetupScreen> {
   final _repo = QuestionRepository();
+  final _knowledgeRepo = KnowledgeRepository();
   List<String> _categories = [];
   String? _selectedCategory;
   int _questionCount = 5;
   bool _isLoading = true;
+  bool _useKnowledgeBase = true;
+  String _lang = 'bn';
 
   @override
   void initState() {
@@ -25,10 +29,11 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
   }
 
   Future<void> _loadCategories() async {
-    final lang = await PreferencesService.getLanguage();
+    final lang = await LanguageService().currentLocale.languageCode;
     final cats = await _repo.getCategories(lang);
     if (mounted) {
       setState(() {
+        _lang = lang;
         _categories = cats;
         if (cats.isNotEmpty) _selectedCategory = cats.first;
         _isLoading = false;
@@ -42,14 +47,29 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final isBn = _lang == 'bn';
+
     return Scaffold(
-      appBar: AppBar(title: const Text('কুইজ সেটআপ')),
+      appBar: AppBar(title: Text(isBn ? 'কুইজ সেটআপ' : 'Quiz Setup')),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('ক্যাটাগরি নির্বাচন করুন', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(isBn ? 'প্রশ্নের ধরন' : 'Question Type', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Card(
+              color: _useKnowledgeBase ? AppColors.knowledgeAccent.withOpacity(0.1) : Colors.white,
+              child: SwitchListTile(
+                title: Text(isBn ? 'জ্ঞানকোষ থেকে প্রশ্ন' : 'Questions from Knowledge Base'),
+                subtitle: Text(isBn ? 'পড়া তথ্যগুলোর উপর ভিত্তি করে প্রশ্ন' : 'Questions based on read information'),
+                value: _useKnowledgeBase,
+                activeColor: AppColors.knowledgeAccent,
+                onChanged: (val) => setState(() => _useKnowledgeBase = val),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(isBn ? 'ক্যাটাগরি নির্বাচন করুন' : 'Select Category', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _selectedCategory,
@@ -58,7 +78,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
               onChanged: (val) => setState(() => _selectedCategory = val),
             ),
             const SizedBox(height: 24),
-            const Text('প্রশ্নের সংখ্যা', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(isBn ? 'প্রশ্নের সংখ্যা' : 'Number of Questions', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Row(
               children: [5, 10, 20].map((count) {
@@ -94,12 +114,17 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () async {
-                  final lang = await PreferencesService.getLanguage();
-                  final questions = await _repo.getQuestionsByLanguage(lang, _selectedCategory, _questionCount);
+                  List<dynamic> questions;
+                  if (_useKnowledgeBase) {
+                    questions = await _repo.generateQuestionsFromKnowledge(_lang, _selectedCategory, _questionCount);
+                  } else {
+                    questions = await _repo.getQuestionsByLanguage(_lang, _selectedCategory, _questionCount);
+                  }
+
                   if (questions.isEmpty) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('প্রশ্ন পাওয়া যায়নি')),
+                        SnackBar(content: Text(isBn ? 'প্রশ্ন পাওয়া যায়নি' : 'No questions found')),
                       );
                     }
                     return;
@@ -109,7 +134,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => QuizPlayScreen(
-                          questions: questions,
+                          questions: questions.cast(),
                           category: _selectedCategory!,
                         ),
                       ),
@@ -121,7 +146,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('কুইজ শুরু করুন', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(isBn ? 'কুইজ শুরু করুন' : 'Start Quiz', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
