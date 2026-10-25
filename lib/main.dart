@@ -3,10 +3,17 @@ import 'core/theme/app_colors.dart';
 import 'core/navigation/main_navigation_screen.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/services/language_service.dart';
+import 'features/health/data/health_repository.dart';
+import 'features/knowledge/data/knowledge_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LanguageService().init();
+  
+  // ডেটাবেসে প্রাথমিক ডেটা লোড করা
+  await HealthRepository().insertInitialTipsIfNeeded();
+  await KnowledgeRepository().insertInitialDataIfNeeded();
+
   runApp(const MyWorkApp());
 }
 
