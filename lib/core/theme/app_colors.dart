@@ -31,5 +31,5 @@ class AppColors {
   static const Color quizWrong = Color(0xFFEF4444);
 
   // গেমস বাটন ও স্কোর
-  static const Color gameGold = Color(0xFFFFB300);
+  static const Color gameGold = Color(0xFFFFD700); // Grok-এর পরামর্শ অনুযায়ী যোগ করা হলো
 }
