@@ -35,7 +35,11 @@ jobs:
       - name: Get Dependencies
         run: flutter pub get
 
-      # গিটহাব সার্ভার নিজেই প্রজেক্ট স্ট্রাকচার ঠিক করে নেবে
+      # প্রজেক্টের নাম ফোর্স করে s_r_media সেট করা হচ্ছে
+      - name: Fix Project Name
+        run: sed -i 's/^name:.*/name: s_r_media/' pubspec.yaml
+
+      # এখন flutter create রান করলে আর এরর দেবে না
       - name: Fix Android Project Structure
         run: flutter create . --platforms=android
 
