@@ -8,11 +8,16 @@ import 'features/knowledge/data/knowledge_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await LanguageService().init();
   
-  // ডেটাবেসে প্রাথমিক ডেটা লোড করা
-  await HealthRepository().insertInitialTipsIfNeeded();
-  await KnowledgeRepository().insertInitialDataIfNeeded();
+  try {
+    await LanguageService().init();
+    
+    // ডেটাবেসে প্রাথমিক ডেটা লোড করা (try-catch দিয়ে যাতে অ্যাপ ক্র্যাশ না করে)
+    await HealthRepository().insertInitialTipsIfNeeded();
+    await KnowledgeRepository().insertInitialDataIfNeeded();
+  } catch (e) {
+    debugPrint('Error initializing app: $e');
+  }
 
   runApp(const MyWorkApp());
 }
