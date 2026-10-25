@@ -2,13 +2,9 @@ name: Build MyWork APK
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
   pull_request:
-    branches:
-      - main
-      - master
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
@@ -19,7 +15,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -28,26 +24,35 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'   # বা আপনার পছন্দের স্টেবল ভার্সন
+          flutter-version: '3.24.5'
           channel: 'stable'
           cache: true
 
       - name: Get Dependencies
         run: flutter pub get
 
-      # Project name ফিক্স + Android ফোল্ডার তৈরি
-      - name: Fix Android Project Structure
+      - name: Create Android folder + Fix Project Name
         run: |
-          # pubspec.yaml-এর name ঠিক করা
-          sed -i 's/^name:.*/name: mywork/' pubspec.yaml
-          
-          # flutter create চালানো — project-name আলাদা করে দিচ্ছি
-          flutter create . --project-name mywork --org com.mywork --platforms=android
+          sed -i 's/^name: .*/name: mywork/' pubspec.yaml
+          flutter create . --project-name mywork --org com.mywork.app --platforms=android
 
-      - name: Build APK (Release)
-        run: flutter build apk --release
+      - name: Force correct Kotlin & Gradle versions
+        run: |
+          if [ -f android/settings.gradle ]; then
+            sed -i 's/id "org.jetbrains.kotlin.android" version ".*"/id "org.jetbrains.kotlin.android" version "1.9.24"/' android/settings.gradle || true
+          fi
+          if [ -f android/build.gradle ]; then
+            sed -i 's/ext.kotlin_version = .*/ext.kotlin_version = "1.9.24"/' android/build.gradle || true
+            sed -i 's/classpath .com.android.tools.build:gradle:.*/classpath "com.android.tools.build:gradle:8.3.0"/' android/build.gradle || true
+          fi
+          if [ -f android/gradle/wrapper/gradle-wrapper.properties ]; then
+            sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.4-all.zip|' android/gradle/wrapper/gradle-wrapper.properties
+          fi
 
-      - name: Upload APK Artifact
+      - name: Build Release APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: MyWork-Release-APK
