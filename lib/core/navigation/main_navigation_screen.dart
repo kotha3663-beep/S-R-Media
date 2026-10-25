@@ -26,11 +26,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         final isBn = _langService.currentLocale.languageCode == 'bn';
 
         final List<Widget> screens = [
-          HomeScreen(key: ValueKey(isBn)),
-          LedgerScreen(key: ValueKey(isBn)),
-          GameHubScreen(key: ValueKey(isBn)),
-          HealthTipsScreen(key: ValueKey(isBn)),
-          KnowledgeScreen(key: ValueKey(isBn)),
+          HomeScreen(key: ValueKey('home_$isBn')),
+          LedgerScreen(key: ValueKey('ledger_$isBn')),
+          GameHubScreen(key: ValueKey('games_$isBn')),
+          HealthTipsScreen(key: ValueKey('health_$isBn')),
+          KnowledgeScreen(key: ValueKey('knowledge_$isBn')),
         ];
 
         return Scaffold(
