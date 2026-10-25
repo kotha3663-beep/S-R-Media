@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/services/language_service.dart';
 import '../data/game_repository.dart';
 import '../models/game_record_model.dart';
 
@@ -57,6 +58,8 @@ class _GameOverScreenState extends State<GameOverScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isBn = LanguageService().currentLocale.languageCode == 'bn';
+
     return Scaffold(
       backgroundColor: Colors.black87,
       body: Center(
@@ -70,13 +73,13 @@ class _GameOverScreenState extends State<GameOverScreen> {
                 style: const TextStyle(color: Colors.white70, fontSize: 24),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'গেম ওভার!',
-                style: TextStyle(color: Colors.redAccent, fontSize: 40, fontWeight: FontWeight.bold),
+              Text(
+                isBn ? 'গেম ওভার!' : 'Game Over!',
+                style: const TextStyle(color: Colors.redAccent, fontSize: 40, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               Text(
-                'স্কোর: ${widget.score}',
+                isBn ? 'স্কোর: ${widget.score}' : 'Score: ${widget.score}',
                 style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
               ),
               if (_isNewHighScore) ...[
@@ -87,9 +90,9 @@ class _GameOverScreenState extends State<GameOverScreen> {
                     color: AppColors.gameGold,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    '🎉 নতুন সর্বোচ্চ স্কোর!',
-                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                  child: Text(
+                    isBn ? '🎉 নতুন সর্বোচ্চ স্কোর!' : '🎉 New High Score!',
+                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -103,7 +106,7 @@ class _GameOverScreenState extends State<GameOverScreen> {
                       widget.onRestart();
                     },
                     icon: const Icon(Icons.refresh),
-                    label: const Text('আবার খেলুন'),
+                    label: Text(isBn ? 'আবার খেলুন' : 'Play Again'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.secondary,
                       foregroundColor: Colors.white,
@@ -116,7 +119,7 @@ class _GameOverScreenState extends State<GameOverScreen> {
                       widget.onExit();
                     },
                     icon: const Icon(Icons.exit_to_app),
-                    label: const Text('বের হন'),
+                    label: Text(isBn ? 'বের হন' : 'Exit'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey.shade700,
                       foregroundColor: Colors.white,
