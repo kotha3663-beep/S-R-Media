@@ -24,9 +24,10 @@ class _DotConnectGameState extends State<DotConnectGame> {
       if ((x == 4 && y == 0) || (x == 0 && y == 4)) dotColor = 'blue';
 
       if (dotColor != null) {
+        final color = dotColor; // Nullable থেকে Non-nullable এ কনভার্ট করা হলো
         setState(() {
-          _activeColor = dotColor;
-          _paths[dotColor] = [Offset(x.toDouble(), y.toDouble())];
+          _activeColor = color;
+          _paths[color] = [Offset(x.toDouble(), y.toDouble())];
           _isDrawing = true;
         });
       }
