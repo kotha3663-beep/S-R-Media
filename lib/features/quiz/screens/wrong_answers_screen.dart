@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/database/db_helper.dart';
+import '../../../core/database/database_helper.dart';
 import '../models/question_model.dart';
 
 class WrongAnswersScreen extends StatefulWidget {
@@ -23,7 +23,7 @@ class _WrongAnswersScreenState extends State<WrongAnswersScreen> {
   }
 
   Future<void> _loadWrongAnswers() async {
-    final db = await DbHelper.database;
+    final db = await DatabaseHelper.database;
     final answers = await db.query(
       'quiz_answers',
       where: 'quiz_result_id = ? AND is_correct = ?',
