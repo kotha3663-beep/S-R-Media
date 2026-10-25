@@ -10,7 +10,8 @@ class DotConnectGame extends StatefulWidget {
 class _DotConnectGameState extends State<DotConnectGame> {
   final int gridSize = 5;
   final Map<String, List<Offset>> _paths = {};
-  Offset? _currentDragPoint;
+  bool _isDrawing = false;
+  String? _activeColor;
 
   void _onPanStart(DragStartDetails details, Size size) {
     final cellSize = size.width / gridSize;
@@ -24,25 +25,24 @@ class _DotConnectGameState extends State<DotConnectGame> {
 
       if (dotColor != null) {
         setState(() {
+          _activeColor = dotColor;
           _paths[dotColor] = [Offset(x.toDouble(), y.toDouble())];
-          _currentDragPoint = details.localPosition;
+          _isDrawing = true;
         });
       }
     }
   }
 
   void _onPanUpdate(DragUpdateDetails details, Size size) {
-    if (_paths.isEmpty) return;
+    if (!_isDrawing || _activeColor == null) return;
     final cellSize = size.width / gridSize;
     
     final x = (details.localPosition.dx / cellSize).floor();
     final y = (details.localPosition.dy / cellSize).floor();
     final newPoint = Offset(x.toDouble(), y.toDouble());
 
-    String activeColor = _paths.keys.last;
-    List<Offset> currentPath = _paths[activeColor]!;
-
     if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+      List<Offset> currentPath = _paths[_activeColor]!;
       if (!currentPath.contains(newPoint)) {
         final lastPoint = currentPath.last;
         if ((lastPoint.dx - newPoint.dx).abs() + (lastPoint.dy - newPoint.dy).abs() == 1) {
@@ -56,7 +56,6 @@ class _DotConnectGameState extends State<DotConnectGame> {
           if (!collision) {
             setState(() {
               currentPath.add(newPoint);
-              _currentDragPoint = details.localPosition;
             });
           }
         }
@@ -66,7 +65,8 @@ class _DotConnectGameState extends State<DotConnectGame> {
 
   void _onPanEnd(DragEndDetails details) {
     setState(() {
-      _currentDragPoint = null;
+      _isDrawing = false;
+      _activeColor = null;
     });
     _checkWin();
   }
