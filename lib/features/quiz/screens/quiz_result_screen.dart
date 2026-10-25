@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../models/quiz_result_model.dart';
-import '../data/quiz_repository.dart';
+import '../../../core/services/language_service.dart';
 import 'quiz_history_screen.dart';
 import 'wrong_answers_screen.dart';
 
-class QuizResultScreen extends StatefulWidget {
+class QuizResultScreen extends StatelessWidget {
   final int resultId;
   final String category;
   final int totalQuestions;
@@ -34,15 +33,12 @@ class QuizResultScreen extends StatefulWidget {
   });
 
   @override
-  State<QuizResultScreen> createState() => _QuizResultScreenState();
-}
-
-class _QuizResultScreenState extends State<QuizResultScreen> {
-  @override
   Widget build(BuildContext context) {
+    final isBn = LanguageService().currentLocale.languageCode == 'bn';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ফলাফল'),
+        title: Text(isBn ? 'ফলাফল' : 'Results'),
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
@@ -66,40 +62,42 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
               ),
               child: Center(
                 child: Text(
-                  widget.grade,
+                  grade,
                   style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: AppColors.knowledgeAccent),
                 ),
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              'স্কোর: ${widget.totalScore.toStringAsFixed(1)} / ${widget.maxPossibleScore.toStringAsFixed(0)}',
+              isBn 
+                  ? 'স্কোর: ${totalScore.toStringAsFixed(1)} / ${maxPossibleScore.toStringAsFixed(0)}'
+                  : 'Score: ${totalScore.toStringAsFixed(1)} / ${maxPossibleScore.toStringAsFixed(0)}',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const SizedBox(height: 32),
             Row(
               children: [
-                Expanded(child: _buildStatCard('সঠিক', '${widget.correctAnswers}', AppColors.success)),
+                Expanded(child: _buildStatCard(isBn ? 'সঠিক' : 'Correct', '$correctAnswers', AppColors.success)),
                 const SizedBox(width: 16),
-                Expanded(child: _buildStatCard('ভুল', '${widget.wrongAnswers}', AppColors.error)),
+                Expanded(child: _buildStatCard(isBn ? 'ভুল' : 'Wrong', '$wrongAnswers', AppColors.error)),
               ],
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _buildStatCard('সঠিকতা', '${widget.accuracyPercent.toStringAsFixed(1)}%', AppColors.secondary)),
+                Expanded(child: _buildStatCard(isBn ? 'সঠিকতা' : 'Accuracy', '${accuracyPercent.toStringAsFixed(1)}%', AppColors.secondary)),
                 const SizedBox(width: 16),
-                Expanded(child: _buildStatCard('গড় সময়', '${(widget.averageTimeNs / 1000000000).toStringAsFixed(3)} সে', AppColors.warning)),
+                Expanded(child: _buildStatCard(isBn ? 'গড় সময়' : 'Avg Time', '${(averageTimeNs / 1000000000).toStringAsFixed(3)}s', AppColors.warning)),
               ],
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _buildStatCard('দ্রুততম সঠিক', '${(widget.fastestCorrectNs / 1000000000).toStringAsFixed(3)} সে', AppColors.knowledgeAccent)),
+                Expanded(child: _buildStatCard(isBn ? 'দ্রুততম সঠিক' : 'Fastest Correct', '${(fastestCorrectNs / 1000000000).toStringAsFixed(3)}s', AppColors.knowledgeAccent)),
               ],
             ),
             const SizedBox(height: 32),
-            if (widget.wrongAnswers > 0)
+            if (wrongAnswers > 0)
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -107,7 +105,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                   onPressed: () {
                     Navigator.push(
                       context, 
-                      MaterialPageRoute(builder: (_) => WrongAnswersScreen(quizResultId: widget.resultId))
+                      MaterialPageRoute(builder: (_) => WrongAnswersScreen(quizResultId: resultId))
                     );
                   },
                   style: OutlinedButton.styleFrom(
@@ -115,7 +113,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                     side: const BorderSide(color: AppColors.error),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('ভুল উত্তরগুলো দেখুন', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text(isBn ? 'ভুল উত্তরগুলো দেখুন' : 'View Wrong Answers', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             const SizedBox(height: 16),
@@ -131,7 +129,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('ফিরে যান', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(isBn ? 'ফিরে যান' : 'Go Back', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
