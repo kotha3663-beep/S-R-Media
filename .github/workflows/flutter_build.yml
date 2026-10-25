@@ -1,0 +1,49 @@
+name: Build MyWork APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch: # ম্যানুয়ালি ট্রিগার করার জন্য
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0' # আপনার প্রজেক্টের সাথে সামঞ্জস্যপূর্ণ ভার্সন
+          channel: 'stable'
+          cache: true
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Analyze Code
+        run: flutter analyze || true # ওয়ার্নিং থাকলেও বিল্ড বন্ধ হবে না
+
+      - name: Build APK (Release)
+        run: flutter build apk --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyWork-Release-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
