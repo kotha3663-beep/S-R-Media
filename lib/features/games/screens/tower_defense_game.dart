@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../core/services/language_service.dart';
+import 'game_over_screen.dart';
 
 class TowerDefenseGame extends StatefulWidget {
   const TowerDefenseGame({super.key});
@@ -14,6 +16,8 @@ class _TowerDefenseGameState extends State<TowerDefenseGame> {
   Timer? _spawnTimer;
   Timer? _moveTimer;
   int health = 100;
+  int score = 0;
+  bool _isGameOver = false;
 
   @override
   void initState() {
@@ -22,38 +26,65 @@ class _TowerDefenseGameState extends State<TowerDefenseGame> {
   }
 
   void _startGame() {
-    enemies.clear();
-    towers.clear();
-    health = 100;
-    _spawnTimer?.cancel();
-    _moveTimer?.cancel();
+    setState(() {
+      enemies.clear();
+      towers.clear();
+      health = 100;
+      score = 0;
+      _isGameOver = false;
+      _spawnTimer?.cancel();
+      _moveTimer?.cancel();
 
-    _spawnTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (health <= 0) return;
-      setState(() {
-        enemies.add(const Offset(0, 0.5));
+      _spawnTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+        if (_isGameOver) return;
+        setState(() {
+          enemies.add(const Offset(0, 0.5));
+        });
       });
-    });
 
-    _moveTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (health <= 0) return;
-      setState(() {
-        for (var i = enemies.length - 1; i >= 0; i--) {
-          enemies[i] += const Offset(0.01, 0);
-          if (enemies[i].dx > 1.0) {
-            enemies.removeAt(i);
-            health -= 10;
-          } else {
-            for (var tower in towers) {
-              if ((tower - enemies[i]).distance < 0.1) {
-                enemies.removeAt(i);
+      _moveTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+        if (_isGameOver) return;
+        setState(() {
+          for (var i = enemies.length - 1; i >= 0; i--) {
+            enemies[i] += const Offset(0.01, 0);
+            if (enemies[i].dx > 1.0) {
+              enemies.removeAt(i);
+              health -= 10;
+              if (health <= 0) {
+                health = 0;
+                _isGameOver = true;
+                _showGameOver();
                 break;
+              }
+            } else {
+              for (var tower in towers) {
+                if ((tower - enemies[i]).distance < 0.1) {
+                  enemies.removeAt(i);
+                  score += 10;
+                  break;
+                }
               }
             }
           }
-        }
+        });
       });
     });
+  }
+
+  void _showGameOver() {
+    final isBn = LanguageService().currentLocale.languageCode == 'bn';
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GameOverScreen(
+          gameId: 'tower_defense',
+          gameName: isBn ? 'টাওয়ার ডিফেন্স' : 'Tower Defense',
+          score: score,
+          onRestart: _startGame,
+          onExit: () => Navigator.pop(context),
+        ),
+      ),
+    );
   }
 
   @override
@@ -65,10 +96,13 @@ class _TowerDefenseGameState extends State<TowerDefenseGame> {
 
   @override
   Widget build(BuildContext context) {
+    final isBn = LanguageService().currentLocale.languageCode == 'bn';
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Tower Defense')),
+      appBar: AppBar(title: Text(isBn ? 'টাওয়ার ডিফেন্স' : 'Tower Defense')),
       body: GestureDetector(
         onTapDown: (details) {
+          if (_isGameOver) return;
           final box = context.findRenderObject() as RenderBox;
           final localPos = box.globalToLocal(details.globalPosition);
           final size = box.size;
@@ -83,7 +117,12 @@ class _TowerDefenseGameState extends State<TowerDefenseGame> {
               Positioned(
                 top: 20,
                 left: 20,
-                child: Text('স্বাস্থ্য: $health', style: const TextStyle(color: Colors.white, fontSize: 20)),
+                child: Text(isBn ? 'স্বাস্থ্য: $health' : 'Health: $health', style: const TextStyle(color: Colors.white, fontSize: 20)),
+              ),
+              Positioned(
+                top: 20,
+                right: 20,
+                child: Text(isBn ? 'স্কোর: $score' : 'Score: $score', style: const TextStyle(color: Colors.white, fontSize: 20)),
               ),
               ...towers.map((t) => Positioned(
                 left: t.dx * MediaQuery.of(context).size.width - 15,
@@ -99,17 +138,6 @@ class _TowerDefenseGameState extends State<TowerDefenseGame> {
                   width: 20, height: 20, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
                 ),
               )),
-              if (health <= 0)
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('গেম ওভার!', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 20),
-                      ElevatedButton(onPressed: _startGame, child: const Text('আবার শুরু করুন')),
-                    ],
-                  ),
-                )
             ],
           ),
         ),
