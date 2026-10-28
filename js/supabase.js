@@ -16,7 +16,7 @@ async function getCurrentUser() {
     if (error || !user) return null;
     return user;
   } catch (e) {
-    console.error(e);
+    console.error('getCurrentUser error:', e);
     return null;
   }
 }
@@ -82,10 +82,7 @@ function showToast(message, type = 'success') {
   toast.innerText = message;
   document.body.appendChild(toast);
 
-  setTimeout(() => {
-    toast.classList.add('show');
-  }, 10);
-
+  setTimeout(() => toast.classList.add('show'), 10);
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 300);
