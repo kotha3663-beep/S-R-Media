@@ -2,7 +2,7 @@
 // NnowQuiz - Supabase Configuration
 
 const SUPABASE_URL = 'https://vixeyhinkjawxuqyegzs.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpeGV5aGlua2phd3h1cXllZWdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODc1NjgsImV4cCI6MjEwODY2MzU2OH0.O3GeY7Qh3pMG3J9K814nTf7UVjGXMCMSiAxzy0Gmzgk';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpeGV5aGlua2phd3h1cXllZ3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODc1NjgsImV4cCI6MjEwODY2MzU2OH0.O3GeY7Qh3pMG3J9K814nTf7UVjGXMCMSiAxzy0Gmzgk';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
