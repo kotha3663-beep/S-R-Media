@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>প্রোফাইল - NnowQuiz</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="container page">
+    <div class="header">
+      <button class="back-btn" onclick="history.back()">←</button>
+      <div class="logo">প্রোফাইল</div>
+      <div style="width:40px;"></div>
+    </div>
+
+    <div id="profileContainer">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="icon">🏠</span>
+      <span>হোম</span>
+    </a>
+    <a href="articles.html" class="nav-item">
+      <span class="icon">📚</span>
+      <span>প্রবন্ধ</span>
+    </a>
+    <a href="leaderboard.html" class="nav-item">
+      <span class="icon">🏆</span>
+      <span>র‍্যাঙ্ক</span>
+    </a>
+    <a href="profile.html" class="nav-item active">
+      <span class="icon">👤</span>
+      <span>প্রোফাইল</span>
+    </a>
+  </div>
+
+  <script src="js/supabase.js"></script>
+  <script>
+    async function loadProfile() {
+      const user = await requireAuth();
+      if (!user) return;
+
+      const profile = await getProfile();
+      if (!profile) {
+        showToast('প্রোফাইল লোড ব্যর্থ', 'error');
+        return;
+      }
+
+      document.getElementById('profileContainer').innerHTML = `
+        <div class="card text-center" style="padding: 28px 20px;">
+          <div style="width:80px; height:80px; background:linear-gradient(135deg,#6366f1,#c084fc); border-radius:50%; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:800;">
+            ${(profile.full_name || 'U').charAt(0).toUpperCase()}
+          </div>
+          <h2 style="font-size:1.4rem; margin-bottom:4px;">${profile.full_name || 'ইউজার'}</h2>
+          <p class="text-muted" style="font-size:0.9rem;">${user.email}</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">${formatNumber(profile.coins || 0)}</div>
+            <div class="stat-label">মোট পয়েন্ট</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${formatNumber(profile.total_quizzes_submitted || 0)}</div>
+            <div class="stat-label">কুইজ সম্পন্ন</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">অ্যাকাউন্ট তথ্য</div>
+          <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
+            <span class="text-muted">যোগদানের তারিখ</span>
+            <span>${new Date(profile.created_at).toLocaleDateString('bn-BD')}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:10px 0;">
+            <span class="text-muted">শেষ কুইজ</span>
+            <span>${profile.last_quiz_at ? timeAgo(profile.last_quiz_at) : 'এখনো দেননি'}</span>
+          </div>
+        </div>
+
+        <button class="btn btn-danger mt-3" onclick="handleLogout()">লগআউট</button>
+      `;
+    }
+
+    async function handleLogout() {
+      if (confirm('লগআউট করতে চান?')) {
+        await signOut();
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>
