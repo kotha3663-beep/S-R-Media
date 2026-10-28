@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>লিডারবোর্ড - NnowQuiz</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="container page">
+    <div class="header">
+      <button class="back-btn" onclick="history.back()">←</button>
+      <div class="logo">লিডারবোর্ড</div>
+      <div style="width:40px;"></div>
+    </div>
+
+    <div class="card" style="background: linear-gradient(135deg, #312e81, #1e1b4b); text-align:center;">
+      <h2 style="font-size:1.2rem; margin-bottom:4px;">🏆 টপ পারফর্মার</h2>
+      <p class="text-muted" style="font-size:0.9rem;">পয়েন্ট অনুযায়ী র‍্যাঙ্কিং</p>
+    </div>
+
+    <div id="leaderboardList">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>লিডারবোর্ড লোড হচ্ছে...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="icon">🏠</span>
+      <span>হোম</span>
+    </a>
+    <a href="articles.html" class="nav-item">
+      <span class="icon">📚</span>
+      <span>প্রবন্ধ</span>
+    </a>
+    <a href="leaderboard.html" class="nav-item active">
+      <span class="icon">🏆</span>
+      <span>র‍্যাঙ্ক</span>
+    </a>
+    <a href="profile.html" class="nav-item">
+      <span class="icon">👤</span>
+      <span>প্রোফাইল</span>
+    </a>
+  </div>
+
+  <script src="js/supabase.js"></script>
+  <script>
+    async function loadLeaderboard() {
+      await requireAuth();
+
+      const { data: leaders, error } = await supabase
+        .from('profiles')
+        .select('full_name, coins, total_quizzes_submitted')
+        .order('coins', { ascending: false })
+        .limit(50);
+
+      const container = document.getElementById('leaderboardList');
+
+      if (error || !leaders || leaders.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">🏆</div>
+            <p>এখনো কেউ কুইজ দেয়নি</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = leaders.map((user, index) => {
+        let rankClass = '';
+        if (index === 0) rankClass = 'gold';
+        else if (index === 1) rankClass = 'silver';
+        else if (index === 2) rankClass = 'bronze';
+
+        return `
+          <div class="leaderboard-item">
+            <div class="rank \( {rankClass}"> \){index + 1}</div>
+            <div class="leader-info">
+              <div class="leader-name">${user.full_name || 'অজানা ইউজার'}</div>
+              <div class="leader-points">${formatNumber(user.coins || 0)} পয়েন্ট • ${user.total_quizzes_submitted || 0} কুইজ</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    loadLeaderboard();
+  </script>
+</body>
+</html>
