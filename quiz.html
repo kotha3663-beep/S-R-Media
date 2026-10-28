@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>কুইজ - NnowQuiz</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="container page">
+    <div class="header">
+      <button class="back-btn" onclick="confirmExit()">←</button>
+      <div class="logo">কুইজ</div>
+      <div id="quizProgress" class="badge badge-primary">১/৫</div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width: 20%;"></div>
+    </div>
+
+    <!-- Article Section (shown first) -->
+    <div id="articleSection">
+      <div class="card">
+        <div class="card-title" id="articleTitle">প্রবন্ধ লোড হচ্ছে...</div>
+        <div class="article-content" id="articleContent" style="max-height: 320px; overflow-y: auto;"></div>
+      </div>
+
+      <div id="nativeAdSlot" style="margin: 16px 0; min-height: 70px;"></div>
+
+      <button class="btn btn-primary" id="startQuestionsBtn" onclick="startQuestions()">
+        প্রশ্নোত্তর শুরু করুন
+      </button>
+      <p class="text-muted text-center mt-2" style="font-size:0.85rem;">প্রবন্ধ ভালো করে পড়ুন, তারপর প্রশ্নোত্তর শুরু করুন</p>
+    </div>
+
+    <!-- Questions Section -->
+    <div id="questionsSection" style="display: none;">
+      <div class="question-card">
+        <div class="question-number" id="questionNumber">প্রশ্ন ১</div>
+        <div class="question-text" id="questionText">প্রশ্ন লোড হচ্ছে...</div>
+        <div id="optionsContainer"></div>
+      </div>
+
+      <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>
+        পরবর্তী প্রশ্ন
+      </button>
+
+      <button class="btn btn-secondary mt-2" onclick="showArticleAgain()" style="font-size:0.9rem;">
+        প্রবন্ধ আবার পড়ুন
+      </button>
+    </div>
+  </div>
+
+  <script src="js/supabase.js"></script>
+  <script>
+    let profile = null;
+    let currentArticle = null;
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let selectedAnswers = {};
+    let currentSetNumber = 1;
+
+    async function init() {
+      const user = await requireAuth();
+      if (!user) return;
+
+      profile = await getProfile();
+      if (!profile) {
+        showToast('প্রোফাইল লোড ব্যর্থ', 'error');
+        return;
+      }
+
+      // Check if quiz is paused
+      const { data: pauseSetting } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'quiz_paused')
+        .maybeSingle();
+
+      if (pauseSetting && pauseSetting.value === 'true') {
+        showToast('কুইজ বর্তমানে বন্ধ আছে', 'warning');
+        setTimeout(() => window.location.href = 'home.html', 1500);
+        return;
+      }
+
+      // Check 8 quizzes limit in 2 hours
+      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+      const { data: recent } = await supabase
+        .from('quiz_submissions')
+        .select('id')
+        .eq('user_id', profile.id)
+        .gte('submitted_at', twoHoursAgo);
+
+      if (recent && recent.length >= 8) {
+        showToast('২ ঘণ্টায় সর্বোচ্চ ৮টি কুইজ দেওয়া যাবে। পরে চেষ্টা করুন।', 'warning');
+        setTimeout(() => window.location.href = 'home.html', 2000);
+        return;
+      }
+
+      await loadQuizData();
+    }
+
+    async function loadQuizData() {
+      // Get all active articles
+      const { data: articles, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (error || !articles || articles.length === 0) {
+        document.getElementById('articleSection').innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>এখনো কোনো প্রবন্ধ যোগ করা হয়নি</p>
+            <a href="home.html" class="btn btn-primary mt-3">হোমে ফিরে যান</a>
+          </div>
+        `;
+        return;
+      }
+
+      // Determine which article and set to show based on previous submissions
+      const { data: submissions } = await supabase
+        .from('quiz_submissions')
+        .select('article_id, set_number')
+        .eq('user_id', profile.id)
+        .order('submitted_at', { ascending: false });
+
+      let articleIndex = 0;
+      let setNumber = 1;
+
+      if (submissions && submissions.length > 0) {
+        const totalSubmitted = submissions.length;
+        const totalArticles = articles.length;
+
+        // Cycle logic: after finishing all articles with set 1 → set 2 → set 3 → repeat
+        const cyclePosition = totalSubmitted % (totalArticles * 3);
+        articleIndex = cyclePosition % totalArticles;
+        setNumber = Math.floor(cyclePosition / totalArticles) + 1;
+      }
+
+      currentArticle = articles[articleIndex];
+      currentSetNumber = setNumber;
+
+      // Load questions for this article + set
+      const { data: qs, error: qError } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('article_id', currentArticle.id)
+        .eq('set_number', currentSetNumber)
+        .limit(5);
+
+      if (qError || !qs || qs.length === 0) {
+        // Fallback: try any questions for this article
+        const { data: fallbackQs } = await supabase
+          .from('questions')
+          .select('*')
+          .eq('article_id', currentArticle.id)
+          .limit(5);
+
+        if (!fallbackQs || fallbackQs.length === 0) {
+          document.getElementById('articleSection').innerHTML = `
+            <div class="empty-state">
+              <div class="icon">❓</div>
+              <p>এই প্রবন্ধের জন্য প্রশ্ন এখনো যোগ করা হয়নি</p>
+              <a href="home.html" class="btn btn-primary mt-3">হোমে ফিরে যান</a>
+            </div>
+          `;
+          return;
+        }
+        questions = fallbackQs;
+      } else {
+        questions = qs;
+      }
+
+      // Show article
+      document.getElementById('articleTitle').innerText = currentArticle.title;
+      document.getElementById('articleContent').innerHTML = currentArticle.content
+        .split('\n')
+        .map(p => p.trim() ? `<p>${p}</p>` : '')
+        .join('');
+    }
+
+    function startQuestions() {
+      document.getElementById('articleSection').style.display = 'none';
+      document.getElementById('questionsSection').style.display = 'block';
+      currentQuestionIndex = 0;
+      selectedAnswers = {};
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = questions[currentQuestionIndex];
+      if (!q) return;
+
+      document.getElementById('questionNumber').innerText = `প্রশ্ন ${currentQuestionIndex + 1} / ${questions.length}`;
+      document.getElementById('questionText').innerText = q.question_text;
+      document.getElementById('quizProgress').innerText = `\( {currentQuestionIndex + 1}/ \){questions.length}`;
+      document.getElementById('progressFill').style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+
+      const options = [
+        { key: 'A', text: q.option_a },
+        { key: 'B', text: q.option_b },
+        { key: 'C', text: q.option_c },
+        { key: 'D', text: q.option_d }
+      ];
+
+      const container = document.getElementById('optionsContainer');
+      container.innerHTML = options.map(opt => `
+        <div class="option ${selectedAnswers[currentQuestionIndex] === opt.key ? 'selected' : ''}" 
+             onclick="selectOption('${opt.key}')">
+          <div class="option-letter">${opt.key}</div>
+          <div>${opt.text}</div>
+        </div>
+      `).join('');
+
+      const nextBtn = document.getElementById('nextBtn');
+      if (currentQuestionIndex === questions.length - 1) {
+        nextBtn.innerText = 'কুইজ জমা দিন';
+      } else {
+        nextBtn.innerText = 'পরবর্তী প্রশ্ন';
+      }
+      nextBtn.disabled = !selectedAnswers[currentQuestionIndex];
+    }
+
+    function selectOption(key) {
+      selectedAnswers[currentQuestionIndex] = key;
+      showQuestion();
+    }
+
+    function nextQuestion() {
+      if (!selectedAnswers[currentQuestionIndex]) {
+        showToast('একটি অপশন সিলেক্ট করুন', 'warning');
+        return;
+      }
+
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        showQuestion();
+      } else {
+        submitQuiz();
+      }
+    }
+
+    async function submitQuiz() {
+      let correctCount = 0;
+
+      questions.forEach((q, index) => {
+        if (selectedAnswers[index] === q.correct_option) {
+          correctCount++;
+        }
+      });
+
+      const coinsEarned = correctCount * 10; // 10 points per correct answer
+
+      // Save submission
+      const { error } = await supabase.from('quiz_submissions').insert({
+        user_id: profile.id,
+        article_id: currentArticle.id,
+        set_number: currentSetNumber,
+        score: correctCount,
+        coins_earned: coinsEarned
+      });
+
+      if (error) {
+        console.error(error);
+        showToast('জমা দিতে সমস্যা হয়েছে', 'error');
+        return;
+      }
+
+      // Update profile
+      await supabase
+        .from('profiles')
+        .update({
+          coins: (profile.coins || 0) + coinsEarned,
+          total_quizzes_submitted: (profile.total_quizzes_submitted || 0) + 1,
+          last_quiz_at: new Date().toISOString()
+        })
+        .eq('id', profile.id);
+
+      // Go to result
+      sessionStorage.setItem('quizResult', JSON.stringify({
+        correct: correctCount,
+        total: questions.length,
+        coins: coinsEarned,
+        articleTitle: currentArticle.title
+      }));
+
+      window.location.href = 'result.html';
+    }
+
+    function showArticleAgain() {
+      document.getElementById('questionsSection').style.display = 'none';
+      document.getElementById('articleSection').style.display = 'block';
+    }
+
+    function confirmExit() {
+      if (confirm('কুইজ মাঝপথে ছেড়ে যেতে চান?')) {
+        window.location.href = 'home.html';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
