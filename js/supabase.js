@@ -1,8 +1,14 @@
 // js/supabase.js
+// NnowQuiz - Supabase Configuration
+
 const SUPABASE_URL = 'https://vixeyhinkjawxuqyegzs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpeGV5aGlua2phd3h1cXllZ3pzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwODc1NjgsImV4cCI6MjEwODY2MzU2OH0.O3GeY7Qh3pMG3J9K814nTf7UVjGXMCMSiAxzy0Gmzgk';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ======================
+// Auth Helper Functions
+// ======================
 
 async function getCurrentUser() {
   try {
@@ -10,7 +16,7 @@ async function getCurrentUser() {
     if (error || !user) return null;
     return user;
   } catch (e) {
-    console.error(e);
+    console.error('getCurrentUser error:', e);
     return null;
   }
 }
@@ -63,6 +69,10 @@ async function signOut() {
   window.location.href = 'login.html';
 }
 
+// ======================
+// Utility Functions
+// ======================
+
 function showToast(message, type = 'success') {
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();
@@ -72,7 +82,10 @@ function showToast(message, type = 'success') {
   toast.innerText = message;
   document.body.appendChild(toast);
 
-  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 10);
+
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 300);
@@ -92,4 +105,5 @@ function timeAgo(dateString) {
   if (seconds < 3600) return Math.floor(seconds / 60) + ' মিনিট আগে';
   if (seconds < 86400) return Math.floor(seconds / 3600) + ' ঘণ্টা আগে';
   return Math.floor(seconds / 86400) + ' দিন আগে';
-}
+        }
+    
